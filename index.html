@@ -27,7 +27,6 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:43rem;margin:0 auto;padding:0 1.75rem}
-
   /* nav */
   nav{border-bottom:1px solid var(--rule);background:var(--bg)}
   nav .wrap{display:flex;gap:1.7rem;padding-top:1rem;padding-bottom:1rem;flex-wrap:wrap}
@@ -37,7 +36,6 @@
     color:var(--muted);text-decoration:none;
   }
   nav a:hover{color:var(--ink)}
-
   /* header */
   header{padding:4.25rem 0 2.5rem}
   h1{
@@ -51,7 +49,6 @@
   .claim{
     font-size:1.34rem;line-height:1.48;color:var(--ink);margin:0;max-width:32rem;
   }
-
   /* sections */
   section{padding:3.4rem 0;border-top:1px solid var(--rule);scroll-margin-top:1rem}
   h2{
@@ -66,14 +63,12 @@
   p:last-child{margin-bottom:0}
   a{color:var(--ink);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
   a:hover{text-decoration-thickness:2px}
-
   /* portrait floats, text wraps around it */
   .portrait{
     float:left;width:132px;height:165px;object-fit:cover;
     margin:.35rem 1.6rem .7rem 0;border-radius:2px;
   }
   #about:after{content:"";display:block;clear:both}
-
   /* items */
   .item{margin-bottom:2.4rem}
   .item:last-child{margin-bottom:0}
@@ -82,17 +77,14 @@
     font-family:var(--sans);font-size:.84rem;font-weight:600;letter-spacing:.085em;
     text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.5rem;
   }
-
   /* dissertation — no fill, typography only */
-  .diss{margin-bottom:2.6rem}
+  .diss{margin-bottom:1.15rem}
   .diss h3{font-size:1.5rem;line-height:1.25;margin-bottom:.85rem;letter-spacing:-.014em}
   .diss .fieldnote{color:var(--muted);font-size:.96rem;margin-top:1rem}
-
   .sub{
     font-family:var(--serif);font-size:1.18rem;font-weight:700;
     color:var(--ink);margin:2.8rem 0 1.3rem;letter-spacing:-.008em;
   }
-
   /* fieldwork photos */
   figure{margin:0}
   .fw-side img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:2px}
@@ -100,38 +92,30 @@
   .fw-right{float:right;clear:both;width:16.5rem;margin:.45rem 0 1.3rem 1.9rem}
   #fieldwork:after{content:"";display:block;clear:both}
   /* dissertation and fieldwork read as one block */
-  #research{padding-bottom:1.5rem}
+  #research{padding-bottom:0}
   #fieldwork{border-top:none;padding-top:0}
-
-  .photos{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin:2.2rem 0 0;clear:both}
-  .photos figure{margin:0}
-  .photos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:2px}
-  #fieldwork figcaption{
+  .fw-band{margin:0 0 2.2rem}
+  .fw-band img{width:100%;aspect-ratio:16/7;object-fit:cover;display:block;border-radius:2px}
+  .fw-band figcaption,#fieldwork figcaption{
     font-family:var(--sans);font-size:.76rem;line-height:1.45;
     color:var(--muted);margin-top:.5rem;
   }
   @media(max-width:620px){
-    .photos{grid-template-columns:1fr;gap:1.4rem}
     .fw-left,.fw-right{float:none;width:100%;margin:1.4rem 0}
   }
-
   /* title-only working paper list */
   .paper{margin:0 0 1.15rem}
   .paper:last-child{margin-bottom:0}
   .paper h3{margin:0;font-weight:400;font-size:1.12rem;letter-spacing:0}
-
   /* citation list — hanging indent */
   .cite{padding-left:1.6rem;text-indent:-1.6rem;margin:0 0 1.05rem}
   .cite:last-child{margin-bottom:0}
-
   ul.plain{list-style:none;padding:0;margin:0}
   ul.plain li{margin-bottom:.95rem;padding-left:1.15rem;position:relative}
   ul.plain li:last-child{margin-bottom:0}
   ul.plain li:before{content:"";position:absolute;left:0;top:.66em;width:.5rem;height:1px;background:var(--muted)}
-
   .contact a{margin-right:1.5rem;display:inline-block;margin-bottom:.4rem}
   footer{padding:2.4rem 0 3.5rem;border-top:1px solid var(--rule);color:var(--muted);font-family:var(--sans);font-size:.79rem}
-
   @media(max-width:620px){
     body{font-size:17px}
     .wrap{padding:0 1.35rem}
@@ -149,7 +133,6 @@
 </style>
 </head>
 <body>
-
 <nav>
   <div class="wrap">
     <a href="#about">About</a>
@@ -160,42 +143,34 @@
     <a href="#contact">CV</a>
   </div>
 </nav>
-
 <div class="wrap">
-
   <header>
     <h1>Ali Altiok</h1>
     <p class="role">Ph.D. Candidate, Peace Studies and Political Science &middot; University of Notre Dame</p>
     <p class="claim">I study what makes young people trust or distrust their governments.</p>
   </header>
-
   <section id="about">
     <img class="portrait" src="headshot.jpg" alt="Ali Altiok">
-    <p>I am a Ph.D. candidate in Peace Studies and Political Science at the University of Notre Dame. My research focuses on youth political behavior in Kenya and Türkiye, specifically examining what drives young people's trust or distrust in government, how they interact with government-sponsored programs, and how they act politically on social media.</p>
+    <p>I am a Ph.D. candidate in Peace Studies and Political Science at the University of Notre Dame. My research focuses on youth political behavior in Kenya and T&uuml;rkiye, specifically examining what drives young people's trust or distrust in government, how they interact with government-sponsored programs, and how they act politically on social media.</p>
   </section>
-
   <section id="research">
-
     <div class="diss">
-      <span class="status">Dissertation</span>
-      <h3>The Pragmatic Logic of Youth Political Trust </h3>
-      <p>Young people are commonly flattened into reductive binaries, viewed either as threats to democratic stability due to their disengagement from conventional politics, or romanticized as drivers of democratic renewal through direct action against corruption and authoritarianism. Both portrayals rest on the assumption that youth harbor deep cynicism toward public institutions. My dissertation challenges this perspective by systematically analyzing what young Kenyans mean when they express trust or distrust in their government and elected representatives. Uncovering a pragmatic political logic, I show that young people extend trust on material grounds, calibrating their support not as a simple transaction, but as an evaluation of what they judge elected representatives are realistically capable of delivering in their context. The dissertation examines how Kenyan youth encounter in ICT hubs, evaluate government programs and navigate governmental politics online, and incorporate Turkey as a shadow case to compare how youth evaluate flagsip state-sponsored digitalization initiatives. Across these context, youth political trust emerges as a grounded assessment of what is possible rather than a generic generational demand for democracy.</p>
-    </div>
-  </section>
-
-  <section id="fieldwork">
-    <p>Grounded in three rounds of original fieldwork in Kenya (2024 to 2026) across Western, Coastal, and Central regions, my methodology pairs broad empirical scale with contextual depth. Working with local digital skills trainers, who opened access to remote rural vocational ICT hubs, I administired an original survey (N=1,072) that gathered rich qualitative responses through audio prompts. To examine digital youth political behaviour, I conducted an in-person smartphone field experiment (N=320) uncovering how youth tactically engage with political deepfakes, which paired behavioral social media data, discernment judgements with 48 focus group discussions. For a cross-case comparison on government-sponsored initiatives, I extend the project with qualitative interviews in Türkiye, examining youth participation in state's flagship program, Teknofest. </p>
-
-    <div class="photos">
-      <figure>
+      <figure class="fw-band" style="margin-bottom:1.5rem">
         <img src="fieldwork-2.jpg" alt="">
         <figcaption>A young Kenyan using government-sponsored Wi-Fi at the Ahero ICT hub, October 4, 2025</figcaption>
       </figure>
-      <figure>
-        <img src="fieldwork-5.jpg" alt="">
-        <figcaption>ICT mentoring hour at the California Ajira Youth Empowerment Center, Nairobi, January 15, 2025</figcaption>
-      </figure>
+
+      <span class="status">Dissertation</span>
+      <h3>The Pragmatic Logic of Youth Political Trust</h3>
+      <p>Young people are commonly flattened into reductive binaries, viewed either as threats to democratic stability due to their disengagement from conventional politics, or romanticized as drivers of democratic renewal through direct action against corruption and authoritarianism. Both portrayals rest on the assumption that youth harbor deep cynicism toward public institutions. My dissertation challenges this perspective by systematically analyzing what young Kenyans mean when they express trust or distrust in their government and elected representatives. Uncovering a pragmatic political logic, I show that young people extend trust on material grounds, calibrating their support not as a simple transaction, but as an evaluation of what they judge elected representatives are realistically capable of delivering in their context. The dissertation examines how Kenyan youth encounter the state in ICT hubs, evaluate government programs and navigate governmental politics online, and incorporates T&uuml;rkiye as a shadow case to compare how youth evaluate flagship state-sponsored digitalization initiatives. Across these contexts, youth political trust emerges as a grounded assessment of what is possible rather than a generic generational demand for democracy.</p>
     </div>
+  </section>
+<section id="fieldwork">
+    <p>Grounded in three rounds of original fieldwork in Kenya (2024 to 2026) across Western, Coastal, and Central regions, my methodology pairs broad empirical scale with contextual depth. Working with local digital skills trainers, who opened access to remote rural vocational ICT hubs, I administered an original survey (N=1,072) that gathered rich qualitative responses through audio prompts. To examine digital youth political behavior, I conducted an in-person smartphone field experiment (N=320) uncovering how youth tactically engage with political deepfakes, pairing behavioral social media data and discernment judgments with 48 focus group discussions. For a cross-case comparison on government-sponsored initiatives, I extend the project with qualitative interviews in T&uuml;rkiye, examining youth participation in the government's flagship program, Teknofest.</p>
+    <figure class="fw-band" style="margin-top:2.2rem;margin-bottom:0">
+      <img src="fieldwork-5.jpg" alt="">
+      <figcaption>ICT mentoring hour at the California Ajira Youth Empowerment Center, Nairobi, January 15, 2025</figcaption>
+    </figure>
   </section>
 
   <section id="papers">
