@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ali Altiok</title>
+<meta name="description" content="Ali Altiok is a Ph.D. candidate in Peace Studies and Political Science at the University of Notre Dame, studying youth political trust in digitalizing states.">
+<meta name="author" content="Ali Altiok">
+<meta property="og:title" content="Ali Altiok">
+<meta property="og:description" content="I study what makes young people trust, and mistrust, their governments in digitalizing states.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --ink:#000000;
+    --body:#0d0d0d;
+    --muted:#4a4a4a;
+    --rule:#e6e6e6;
+    --bg:#ffffff;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    --serif:Charter,"Bitstream Charter","Iowan Old Style",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--body);
+    font-family:var(--serif);font-size:18px;line-height:1.66;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:43rem;margin:0 auto;padding:0 1.75rem}
+
+  /* nav */
+  nav{border-bottom:1px solid var(--rule);background:var(--bg)}
+  nav .wrap{display:flex;gap:1.7rem;padding-top:1rem;padding-bottom:1rem;flex-wrap:wrap}
+  nav a{
+    font-family:var(--sans);font-size:.79rem;font-weight:500;
+    letter-spacing:.09em;text-transform:uppercase;
+    color:var(--muted);text-decoration:none;
+  }
+  nav a:hover{color:var(--ink)}
+
+  /* header */
+  header{padding:4.25rem 0 2.5rem}
+  h1{
+    font-family:var(--sans);font-size:2.5rem;font-weight:700;
+    line-height:1.08;letter-spacing:-.025em;margin:0 0 .55rem;color:var(--ink);
+  }
+  .role{
+    font-family:var(--sans);font-size:.97rem;letter-spacing:.005em;
+    color:var(--muted);margin:0 0 1.75rem;
+  }
+  .claim{
+    font-size:1.34rem;line-height:1.48;color:var(--ink);margin:0;max-width:32rem;
+  }
+
+  /* sections */
+  section{padding:3.4rem 0;border-top:1px solid var(--rule);scroll-margin-top:1rem}
+  h2{
+    font-family:var(--serif);font-size:1.5rem;font-weight:700;
+    letter-spacing:-.012em;color:var(--ink);margin:0 0 1.7rem;line-height:1.2;
+  }
+  h3{
+    font-family:var(--serif);font-size:1.24rem;font-weight:700;
+    margin:0 0 .45rem;color:var(--ink);line-height:1.35;letter-spacing:-.008em;
+  }
+  p{margin:0 0 1.15rem}
+  p:last-child{margin-bottom:0}
+  a{color:var(--ink);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+  a:hover{text-decoration-thickness:2px}
+
+  /* portrait floats, text wraps around it */
+  .portrait{
+    float:left;width:132px;height:165px;object-fit:cover;
+    margin:.35rem 1.6rem .7rem 0;border-radius:2px;
+  }
+  #about:after{content:"";display:block;clear:both}
+
+  /* items */
+  .item{margin-bottom:2.4rem}
+  .item:last-child{margin-bottom:0}
+  .item p{margin:0}
+  .status{
+    font-family:var(--sans);font-size:.84rem;font-weight:600;letter-spacing:.085em;
+    text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.5rem;
+  }
+
+  /* dissertation — no fill, typography only */
+  .diss{margin-bottom:2.6rem}
+  .diss h3{font-size:1.5rem;line-height:1.25;margin-bottom:.85rem;letter-spacing:-.014em}
+  .diss .fieldnote{color:var(--muted);font-size:.96rem;margin-top:1rem}
+
+  .sub{
+    font-family:var(--serif);font-size:1.18rem;font-weight:700;
+    color:var(--ink);margin:2.8rem 0 1.3rem;letter-spacing:-.008em;
+  }
+
+  /* fieldwork photos */
+  figure{margin:0}
+  .fw-side img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:2px}
+  .fw-left{float:left;clear:left;width:16.5rem;margin:.45rem 1.9rem 1.3rem 0}
+  .fw-right{float:right;clear:both;width:16.5rem;margin:.45rem 0 1.3rem 1.9rem}
+  #fieldwork:after{content:"";display:block;clear:both}
+
+  .photos{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin:2.4rem 0 0;clear:both}
+  .photos figure{margin:0}
+  .photos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:2px}
+  #fieldwork figcaption{
+    font-family:var(--sans);font-size:.76rem;line-height:1.45;
+    color:var(--muted);margin-top:.5rem;
+  }
+  @media(max-width:620px){
+    .photos{grid-template-columns:1fr;gap:1.4rem}
+    .fw-left,.fw-right{float:none;width:100%;margin:1.4rem 0}
+  }
+
+  /* citation list — hanging indent */
+  .cite{padding-left:1.6rem;text-indent:-1.6rem;margin:0 0 1.05rem}
+  .cite:last-child{margin-bottom:0}
+
+  ul.plain{list-style:none;padding:0;margin:0}
+  ul.plain li{margin-bottom:.95rem;padding-left:1.15rem;position:relative}
+  ul.plain li:last-child{margin-bottom:0}
+  ul.plain li:before{content:"";position:absolute;left:0;top:.66em;width:.5rem;height:1px;background:var(--muted)}
+
+  .contact a{margin-right:1.5rem;display:inline-block;margin-bottom:.4rem}
+  footer{padding:2.4rem 0 3.5rem;border-top:1px solid var(--rule);color:var(--muted);font-family:var(--sans);font-size:.79rem}
+
+  @media(max-width:620px){
+    body{font-size:17px}
+    .wrap{padding:0 1.35rem}
+    nav .wrap{gap:1.1rem}
+    nav a{font-size:.7rem;letter-spacing:.05em}
+    header{padding:2.9rem 0 2rem}
+    h1{font-size:2.05rem}
+    .claim{font-size:1.16rem}
+    .portrait{width:108px;height:135px;margin:.3rem 1.1rem .5rem 0}
+    .diss h3{font-size:1.28rem}
+    h2{font-size:1.32rem}
+    h3{font-size:1.14rem}
+    .sub{font-size:1.08rem}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#about">About</a>
+    <a href="#research">Research</a>
+    <a href="#fieldwork">Fieldwork</a>
+    <a href="#publications">Publications</a>
+    <a href="#teaching">Teaching</a>
+    <a href="#contact">CV</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <header>
+    <h1>Ali Altiok</h1>
+    <p class="role">Ph.D. Candidate, Peace Studies and Political Science &middot; University of Notre Dame</p>
+    <p class="claim">I study what makes young people trust, and mistrust, their governments in digitalizing states.</p>
+  </header>
+
+  <section id="about">
+    <img class="portrait" src="headshot.jpg" alt="Ali Altiok">
+    <p>I am a Ph.D. candidate in Peace Studies and Political Science at the University of Notre Dame. My research focuses on youth political behavior, specifically examining what drives young people's trust and mistrust in government, how they interact with state digital skills programs, and how they act politically on social media.</p>
+    <p>My dissertation relies on extensive original fieldwork in Kenya to examine youth political behavior in two settings: government-sponsored ICT hubs and social media. To evaluate institutional trust, I pair observational data from government digital hubs and 35 key-informant interviews with an original 1,072-respondent survey that integrates quantitative metrics with qualitative open-ended responses. To address digital youth politics specifically, I pair a smartphone field experiment on political AI deepfakes involving 320 participants with 48 focus group discussions on online engagement.</p>
+    <p>My scholarship maintains a direct connection to policy and practice. I bring extensive experience in policy-focused research, particularly concerning the UN Security Council's Youth, Peace, and Security Agenda, alongside expertise in UN multilateral counter-terrorism frameworks.</p>
+  </section>
+
+  <section id="research">
+
+    <div class="diss">
+      <span class="status">Dissertation</span>
+      <h3>The Pragmatic Logic of Youth Political Trust in a Digitalizing Kenya</h3>
+      <p>Young people are commonly flattened into reductive binaries, viewed either as threats to democratic stability due to their disengagement from conventional politics, or romanticized as drivers of democratic renewal through direct action against corruption and authoritarianism. Both portrayals rest on the assumption that youth harbor deep cynicism toward public institutions. My dissertation challenges this perspective by systematically analyzing what young Kenyans mean when they express trust or mistrust in their government and elected representatives. Uncovering a pragmatic political logic, I show that young people extend trust on material grounds, calibrating their support not as a simple transaction, but as an evaluation of what they judge elected representatives are realistically capable of delivering in their context. The dissertation examines three settings: how young people evaluate the state, how they encounter it through government digital programs, and how they contest it online. Across all three, political trust emerges as a grounded assessment of the possible rather than a final verdict on democracy itself.</p>
+    </div>
+
+  </section>
+
+  <section id="fieldwork">
+    <h2>Fieldwork</h2>
+
+    <!-- PHOTO 1 — floats left beside the first paragraph. Replace fieldwork-1.jpg and write your own caption. -->
+    <figure class="fw-side fw-left">
+      <img src="fieldwork-1.jpg" alt="">
+      <figcaption>Survey in Nyando Constituency, October 8, 2025</figcaption>
+    </figure>
+
+    <p>My dissertation draws on three rounds of original fieldwork in Kenya (2024 to 2026) across the Western (Kisumu, Siaya), Coastal (Mombasa, Kilifi, Kwale), and Central (Nairobi, Kiambu) regions. Rather than contracting a commercial survey firm, I built research partnerships with local youth trainers in each site. This community-embedded approach opened access to rural vocational centers accessible only by motorbike, capturing youth rarely represented in political behavior research. Across 29 institutions, I conducted 35 key-informant interviews, observational research, and an original 1,072-respondent survey that integrated open-ended audio responses directly into the quantitative instrument.</p>
+
+    <!-- PHOTO 2 — floats right beside the second paragraph. -->
+    <figure class="fw-side fw-right">
+      <img src="fieldwork-2.jpg" alt="">
+      <figcaption>A young Kenyan using government-sponsored Wi-Fi at the Ahero ICT hub, October 4, 2025</figcaption>
+    </figure>
+
+    <p>To examine digital politics at the edge of the digital divide, I designed an in-person smartphone experiment with 320 low-data participants to test responses to political AI deepfakes. Recruited in person at public Wi-Fi hubs, participants scrolled a simulated feed of authentic and manipulated media on their own handsets, recording real-time engagement before evaluating content authenticity. I paired the experiment with 48 focus group discussions to analyze how participants talk through online deception. By analyzing qualitative narratives alongside statistical metrics, the design ensures scale and contextual depth continuously inform each other.</p>
+
+    <!-- BOTTOM ROW — three photos side by side. -->
+    <div class="photos">
+      <figure>
+        <img src="fieldwork-3.jpg" alt="">
+        <figcaption>Post-experiment focus group discussion on political deepfakes, Ugenya, March 11, 2026</figcaption>
+      </figure>
+      <figure>
+        <img src="fieldwork-4.jpg" alt="">
+        <figcaption>Participant observation, digital literacy training at a vocational school, Kisumu, January 23, 2025</figcaption>
+      </figure>
+      <figure>
+        <img src="fieldwork-5.jpg" alt="">
+        <figcaption>ICT mentoring hour at the California Ajira Youth Empowerment Center, Nairobi, January 15, 2025</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="papers">
+    <h2>Working Papers</h2>
+
+    <div class="item">
+      <h3>Beyond Trust Scores: How Kenyan Youth Interpret and Evaluate Government</h3>
+      <p>Political trust is a complex evaluative process, but survey instruments compress it into a single score. Pairing open-ended audio responses with a 1,072-person survey, this paper recovers the reasoning behind the numbers: young Kenyans reporting identical trust scores are often making entirely different judgments, and their criteria are concrete and material rather than ideological. The gap between what trust scales measure and what respondents mean is systematic, not noise. What reads as generalized cynicism in the aggregate turns out to be a set of specific and defensible judgments about specific institutions.</p>
+    </div>
+
+    <div class="item">
+      <h3>State Digitalization in Kenya: How Youth View Government-Sponsored ICT Hubs</h3>
+      <p>Kenya's National Digitalization Master Plan promises an ICT hub in every administrative ward. Drawing on survey data, interviews, and observation across three regions, this paper treats the hubs as sites where young people meet the state directly. What the state actually supplies there is space and security, while infrastructure and training are underwritten by foreign firms and philanthropy.</p>
+    </div>
+
+    <div class="item">
+      <h3>Laughing at Lies, Liking the Lie: Behavioral Signals of Deepfake Detection Among Kenyan Youth</h3>
+      <p>Low institutional trust is widely assumed to leave young people credulous toward political manipulation online. A smartphone-based within-subjects experiment placed 320 young Kenyans in a simulated feed of authentic and manipulated political posts, recording what they did with each one before asking whether they believed it. Across 9,583 paired observations, engagement divides by communicative function rather than effort: behaviors that amplify credibility track lower accuracy, while ridicule and public correction track higher accuracy. Recognizing a manipulation does not end engagement but changes its form, and the form it most often takes is public evaluation rather than passive consumption.</p>
+    </div>
+  </section>
+
+  <section id="publications">
+    <h2>Selected Publications</h2>
+
+    <p class="cite">Altiok, A. and Ilhanli, M. &ldquo;Subverting the &lsquo;Adult Gaze&rsquo; in the Kurdish&ndash;Turkish Conflict: The Case of &lsquo;Kuro&rsquo;.&rdquo; <em>International Political Sociology</em>, 2026. Collective discussion.</p>
+
+    <p class="cite">Parrin, A., Simpson, G., Altiok, A. and Wamai, N. &ldquo;Youth and Transitional Justice.&rdquo; <em>International Journal of Transitional Justice</em> 16, no. 1 (2022): 1&ndash;18. Editorial introducing the special issue, which I co-edited.</p>
+
+    <p class="sub">Under review and in progress</p>
+
+    <p class="cite">Altiok, A., Villalaz, M. D. R. and Hughes, C. &ldquo;The World Bank, the Liberal Peace and the Suppression of Justice.&rdquo; Under review.</p>
+
+    <p class="cite">Altiok, A. &ldquo;How Do Youth Impact Peacemaking? Youth Inclusion in Yemen&rsquo;s 2011&ndash;2014 Political Transition.&rdquo; Working paper.</p>
+
+    <p class="sub">Book chapters</p>
+
+    <p class="cite">Altiok, A. &ldquo;What Makes Youth Participation Meaningful? The Pitfalls of Merging Counter-Terrorism with the Youth, Peace and Security Agenda.&rdquo; In H. Berents, C. Bolten and S. McEvoy-Levy (eds.), <em>Building Sustainable Peace with and for Young People</em>. Manchester University Press, 2024.</p>
+
+    <p class="cite">Altiok, A. &ldquo;Squeezed Agency: Youth Resistance to the Securitization of Peacebuilding.&rdquo; In M. O. Ensor (ed.), <em>Securitizing Youth: Young People&rsquo;s Role in the Global Peace and Security Agenda</em>. Rutgers University Press, 2021.</p>
+
+    <p class="cite">Altiok, A., Berents, H., Grizelj, I. and McEvoy-Levy, S. &ldquo;Youth, Peace and Security.&rdquo; In F. Hampson, J. Kent and A. &Ouml;zerdem (eds.), <em>The Routledge Handbook of Peace, Security and Development</em>. Routledge, 2020.</p>
+
+  </section>
+
+  <section id="teaching">
+    <h2>Teaching</h2>
+    <p>I am prepared to teach courses in comparative politics and political behavior, peace and conflict studies, African politics, international organizations, and research methods, including field methods, survey design, youth participatory research, and experimental design in low-resource settings.</p>
+    <p>At the University of Notre Dame, I have served as a teaching assistant for courses in Middle East Politics and Introduction to Peace Studies. I am also regularly invited to guest lecture on youth politics at universities in the United States and Europe. For over ten years, I have mentored young people from the Global South through collaborative research that treats youth as active partners.</p>
+    <p>Teaching statement and sample syllabi available on request.</p>
+  </section>
+
+  <section id="policy">
+    <h2>Selected policy reports</h2>
+
+    <p>Alongside academic work I have written policy research for the United Nations, the United States Institute of Peace, Saferworld, and Interpeace. Selected reports:</p>
+
+    <p class="cite">Altiok, A. and Street, J. <em>The Voice of the Fourth Pillar: How Security Council Discourse Drove Counter-Terrorism Expansion at the UN</em>. Saferworld, 2025.</p>
+
+    <p class="cite">Altiok, A., Porras, P. and Lee, P. <em>Fostering Youth Participation in International Peacebuilding</em>. United States Institute of Peace, 2023.</p>
+
+    <p class="cite">Altiok, A. and Street, J. <em>A Fourth Pillar of the United Nations? The Rise of Counter-Terrorism</em>. Saferworld, 2020.</p>
+
+    <p class="cite">Altiok, A. and Grizelj, I. <em>We Are Here: An Integrated Approach to Youth Inclusive Peace Processes</em>. UN Office of the Secretary-General&rsquo;s Envoy on Youth, 2019.</p>
+  </section>
+
+  <section id="contact">
+    <p class="contact">
+      <a href="cv.pdf">Curriculum vitae (PDF)</a>
+      <a href="mailto:aaltiok@nd.edu">aaltiok@nd.edu</a>
+      <a href="https://scholar.google.com/citations?user=sSiFXWgAAAAJ&amp;hl=en">Google Scholar</a>
+      <a href="https://orcid.org/0000-0001-5199-4939">ORCID</a>
+    </p>
+    <p>Kroc Institute for International Peace Studies<br>
+    University of Notre Dame &middot; Notre Dame, IN 46556</p>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Ali Altiok</p>
+  </footer>
+
+</div>
+</body>
+</html>
