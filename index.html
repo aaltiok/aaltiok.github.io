@@ -99,8 +99,11 @@
   .fw-left{float:left;clear:left;width:16.5rem;margin:.45rem 1.9rem 1.3rem 0}
   .fw-right{float:right;clear:both;width:16.5rem;margin:.45rem 0 1.3rem 1.9rem}
   #fieldwork:after{content:"";display:block;clear:both}
+  /* dissertation and fieldwork read as one block */
+  #research{padding-bottom:1.5rem}
+  #fieldwork{border-top:none;padding-top:0}
 
-  .photos{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin:2.4rem 0 0;clear:both}
+  .photos{display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem;margin:2.2rem 0 0;clear:both}
   .photos figure{margin:0}
   .photos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border-radius:2px}
   #fieldwork figcaption{
@@ -111,6 +114,11 @@
     .photos{grid-template-columns:1fr;gap:1.4rem}
     .fw-left,.fw-right{float:none;width:100%;margin:1.4rem 0}
   }
+
+  /* title-only working paper list */
+  .paper{margin:0 0 1.15rem}
+  .paper:last-child{margin-bottom:0}
+  .paper h3{margin:0;font-weight:400;font-size:1.12rem;letter-spacing:0}
 
   /* citation list — hanging indent */
   .cite{padding-left:1.6rem;text-indent:-1.6rem;margin:0 0 1.05rem}
@@ -178,37 +186,16 @@
   </section>
 
   <section id="fieldwork">
-    <h2>Fieldwork</h2>
+    <p>Grounded in three rounds of original fieldwork in Kenya (2024 to 2026) across Western, Coastal, and Central regions, my methodology pairs broad empirical scale with contextual depth. Partnering with local digital skills trainers granted access to remote rural vocational centers to execute an original survey (N=1,072) featuring embedded qualitative audio prompts. To examine digital politics at the edge of the digital divide, I conducted an in-person smartphone field experiment (N=320) testing political AI deepfakes on participants' own handsets, pairing real-time behavioral data with 48 focus group discussions.</p>
 
-    <!-- PHOTO 1 — floats left beside the first paragraph. Replace fieldwork-1.jpg and write your own caption. -->
-    <figure class="fw-side fw-left">
-      <img src="fieldwork-1.jpg" alt="">
-      <figcaption>Survey in Nyando Constituency, October 8, 2025</figcaption>
-    </figure>
-
-    <p>My dissertation draws on three rounds of original fieldwork in Kenya (2024 to 2026) across the Western (Kisumu, Siaya), Coastal (Mombasa, Kilifi, Kwale), and Central (Nairobi, Kiambu) regions. Rather than contracting a commercial survey firm, I built research partnerships with local youth trainers in each site. This community-embedded approach opened access to rural vocational centers accessible only by motorbike, capturing youth rarely represented in political behavior research. Across 29 institutions, I conducted 35 key-informant interviews, observational research, and an original 1,072-respondent survey that integrated open-ended audio responses directly into the quantitative instrument.</p>
-
-    <!-- PHOTO 2 — floats right beside the second paragraph. -->
-    <figure class="fw-side fw-right">
-      <img src="fieldwork-2.jpg" alt="">
-      <figcaption>A young man using government-sponsored ICT at the Ahero ICT hub, October 4, 2025</figcaption>
-    </figure>
-
-    <p>To examine digital politics at the edge of the digital divide, I designed an in-person smartphone experiment with 320 low-data participants to test responses to political AI deepfakes. Recruited in person at public Wi-Fi hubs, participants scrolled a simulated feed of authentic and manipulated media on their own handsets, recording real-time engagement before evaluating content authenticity. I paired the experiment with 48 focus group discussions to analyze how participants talk through online deception, which contextualized interpretation of behavioural identified in the experiment.</p>
-
-    <!-- BOTTOM ROW — three photos side by side. -->
     <div class="photos">
       <figure>
-        <img src="fieldwork-3.jpg" alt="">
-        <figcaption>Post-experiment focus group discussion on political deepfakes, Ugenya, March 11, 2026</figcaption>
-      </figure>
-      <figure>
-        <img src="fieldwork-4.jpg" alt="">
-        <figcaption>Participant observation, digital literacy training at a vocational school, Kisumu, January 23, 2025</figcaption>
+        <img src="fieldwork-2.jpg" alt="">
+        <figcaption>A young Kenyan using government-sponsored Wi-Fi at the Ahero ICT hub, October 4, 2025</figcaption>
       </figure>
       <figure>
         <img src="fieldwork-5.jpg" alt="">
-        <figcaption>California Ajira Youth Empowerment Center, Nairobi, January 15, 2025</figcaption>
+        <figcaption>ICT mentoring hour at the California Ajira Youth Empowerment Center, Nairobi, January 15, 2025</figcaption>
       </figure>
     </div>
   </section>
@@ -216,20 +203,9 @@
   <section id="papers">
     <h2>Working Papers</h2>
 
-    <div class="item">
-      <h3>Beyond Trust Scores: How Kenyan Youth Interpret and Evaluate Government</h3>
-      <p>Political trust is a complex evaluative process, but survey instruments compress it into a single score. Pairing open-ended audio responses with a 1,072-person survey, this paper recovers the reasoning behind the numbers: young Kenyans reporting identical trust scores are often making entirely different judgments, and their criteria are concrete and material rather than ideological. The gap between what trust scales measure and what respondents mean is systematic, not noise. What reads as generalized cynicism in the aggregate turns out to be a set of specific and defensible judgments about specific institutions.</p>
-    </div>
-
-    <div class="item">
-      <h3>State Digitalization in Kenya: How Youth View Government-Sponsored ICT Hubs</h3>
-      <p>Kenya's National Digitalization Master Plan promises an ICT hub in every administrative ward. Drawing on survey data, interviews, and observation across three regions, this paper treats the hubs as sites where young people meet the state directly. What the state actually supplies there is space and security, while infrastructure and training are underwritten by foreign firms and philanthropy.</p>
-    </div>
-
-    <div class="item">
-      <h3>Laughing at Lies, Liking the Lie: Behavioral Signals of Deepfake Detection Among Kenyan Youth</h3>
-      <p>Low institutional trust is widely assumed to leave young people credulous toward political manipulation online. A smartphone-based within-subjects experiment placed 320 young Kenyans in a simulated feed of authentic and manipulated political posts, recording what they did with each one before asking whether they believed it. Across 9,583 paired observations, engagement divides by communicative function rather than effort: behaviors that amplify credibility track lower accuracy, while ridicule and public correction track higher accuracy. Recognizing a manipulation does not end engagement but changes its form, and the form it most often takes is public evaluation rather than passive consumption.</p>
-    </div>
+    <div class="paper"><h3>Beyond Trust Scores: How Kenyan Youth Interpret and Evaluate Government</h3></div>
+    <div class="paper"><h3>State Digitalization in Kenya: How Youth View Government-Sponsored ICT Hubs</h3></div>
+    <div class="paper"><h3>Laughing at Lies, Liking the Lie: Behavioral Signals of Deepfake Detection Among Kenyan Youth</h3></div>
   </section>
 
   <section id="publications">
@@ -249,6 +225,8 @@
 
     <p class="cite">Altiok, A. &ldquo;What Makes Youth Participation Meaningful? The Pitfalls of Merging Counter-Terrorism with the Youth, Peace and Security Agenda.&rdquo; In H. Berents, C. Bolten and S. McEvoy-Levy (eds.), <em>Building Sustainable Peace with and for Young People</em>. Manchester University Press, 2024.</p>
 
+    <p class="cite">Altiok, A. &ldquo;Bar&#305;&#351; S&uuml;re&ccedil;lerinde Gen&ccedil;lerin Rolleri: 2011&ndash;2014 Yemen Devrimi ve Ulusal Diyalog Konferans&#305;&rdquo; [Youth Roles in Peace Processes: The 2011&ndash;2014 Yemeni Revolution and National Dialogue Conference]. In E. Dilek and C. Dizdaro&#287;lu (eds.), <em>Ele&#351;tirel Bar&#305;&#351; &Ccedil;al&#305;&#351;malar&#305;: Kavramlar, Akt&ouml;rler ve Pratikler</em> [Critical Peace Studies: Concepts, Actors and Practices]. Imge, 2024.</p>
+
     <p class="cite">Altiok, A. &ldquo;Squeezed Agency: Youth Resistance to the Securitization of Peacebuilding.&rdquo; In M. O. Ensor (ed.), <em>Securitizing Youth: Young People&rsquo;s Role in the Global Peace and Security Agenda</em>. Rutgers University Press, 2021.</p>
 
     <p class="cite">Altiok, A., Berents, H., Grizelj, I. and McEvoy-Levy, S. &ldquo;Youth, Peace and Security.&rdquo; In F. Hampson, J. Kent and A. &Ouml;zerdem (eds.), <em>The Routledge Handbook of Peace, Security and Development</em>. Routledge, 2020.</p>
@@ -262,12 +240,17 @@
     <p>Teaching statement and sample syllabi available on request.</p>
   </section>
 
-<section id="policy">
+  <section id="policy">
     <h2>Selected policy reports</h2>
-    <p>My scholarship maintains a direct connection to policy and practice. I have written numerous policy papers for the United Nations, the United States Institute of Peace, Saferworld, and Interpeace, particularly on the UN Security Council's Youth, Peace and Security Agenda and UN multilateral counter-terrorism frameworks.</p>
+
+    <p>My scholarship maintains a direct connection to policy and practice. I have written policy research for the United Nations, the United States Institute of Peace, Saferworld, and Interpeace, particularly on the UN Security Council's Youth, Peace and Security Agenda and UN multilateral counter-terrorism frameworks.</p>
+
     <p class="cite">Altiok, A. and Street, J. <em>The Voice of the Fourth Pillar: How Security Council Discourse Drove Counter-Terrorism Expansion at the UN</em>. Saferworld, 2025.</p>
+
     <p class="cite">Altiok, A., Porras, P. and Lee, P. <em>Fostering Youth Participation in International Peacebuilding</em>. United States Institute of Peace, 2023.</p>
+
     <p class="cite">Altiok, A. and Street, J. <em>A Fourth Pillar of the United Nations? The Rise of Counter-Terrorism</em>. Saferworld, 2020.</p>
+
     <p class="cite">Altiok, A. and Grizelj, I. <em>We Are Here: An Integrated Approach to Youth Inclusive Peace Processes</em>. UN Office of the Secretary-General&rsquo;s Envoy on Youth, 2019.</p>
   </section>
 
