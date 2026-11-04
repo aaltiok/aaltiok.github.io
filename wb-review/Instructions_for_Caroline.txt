@@ -1,33 +1,16 @@
-WORLD BANK DOCUMENT CLASSIFICATION REVIEW
+WORLD BANK DOCUMENT REVIEW — SHARED VERSION
 
-There are two ways to review the same data. Use whichever is easier.
+Open the complete shared review link supplied by Ali. No ChatGPT or GitHub account is needed. Enter your own name; names identify proposals and are not verified accounts.
 
-OPTION 1 — THE INTERACTIVE FILE
-1. Open World_Bank_Review.html in your usual browser. No installation, website account or internet connection is required for the review itself.
-2. Enter your name. Names identify proposals; they are not verified accounts.
-3. Start in Explore metadata. “Retained corpus” shows the 13,271 documents currently used in the analysis. “All original records” shows the 41,286 records before cleaning. “Excluded records” includes every cleaning reason, not just excluded document types.
-4. Group by the Bank’s document type or product line. Open a group to inspect its overlap with the other classification and read example titles. Original Bank source links can be opened when online.
-5. Save your proposal for Script/Practice or for a knowledge-product grouping. You can separately propose Include or Exclude. “No change” preserves the existing baseline; “Unresolved” records an undecided classification. Use an individual exception when a group rule does not fit a particular document.
-6. Compare approaches shows the effect on counts. Conflicting document-type and product-line rules appear as “Needs review”; individual exceptions override group rules. Use “Agreed decision” only after discussion, not for an independent first review.
-7. Click Export JSON and send the downloaded file back to Ali. Your changes are saved in this browser, but are NOT automatically shared or backed up. Export before changing computers, browsers, file locations or clearing browser data. The JSON export is the transferable copy of your work.
-8. Import reviews loads a returned JSON file. Use it to bring your work to another browser or to inspect proposals from another reviewer. The original metadata stays unchanged.
+1. Start with Retained corpus (13,271 documents), or switch to All original records (41,286) or Excluded records.
+2. Open a document type or Bank product line. Inspect its original metadata and examples.
+3. Select Script/Practice or a knowledge grouping. Inclusion is a separate Include/Exclude decision. No change preserves the baseline; Unresolved records uncertainty. Use individual exceptions where a group rule does not fit.
+4. Click Save my proposal. Saved proposals are visible to everyone with the shared link within a few seconds. Unsaved edits remain in your own form. Use Agreed decision only after discussion.
+5. Shared reviews lists everyone's proposals. Compare approaches previews their effect without changing the research dataset or rerunning models.
+6. If someone saved a newer version of the same decision, the tool asks you to reload that version. It does not silently replace their changes.
+7. Export JSON downloads the shared reviews and revision history as a backup. Import reviews can add earlier file-based reviews; it will not replace conflicting shared versions. Existing browser reviews remain available and can be added explicitly.
+8. Copy review link copies the complete link for another reviewer. Possession of that link provides access; do not post it somewhere you do not want reviewers to enter.
 
-OPTION 2 — EXCEL
-1. Open World_Bank_Classification_Review.xlsx.
-2. “Document types” lists the 126 types marked Keep in the current type-selection rules, including types with zero documents surviving cleaning. “Excluded types” lists all 53 types marked Exclude. Counts distinguish the original collection from the retained analysis.
-3. Fill only the Caroline columns. Leave a cell blank to propose no change. Script/Practice and Include/Exclude are separate decisions. Use “Discuss” where the distinction needs agreement.
-4. “Bank product lines” shows the ORIGINAL product-line labels recovered from the World Bank API. You may propose a function and a knowledge grouping separately. Multiple product lines can apply to one document, so row counts can overlap.
-5. “Individual review” contains the 184 retained records originally missing a document type. Add a row with the document ID if a further individual exception is needed. All_documents.csv provides a searchable list of all 41,286 source records and their cleaning status.
-6. Save the workbook with your name in the filename and send it back to Ali. Ali can convert the completed review into JSON; you do not need to edit JSON or run any code.
+The Bank's document type, major document type and product line are original metadata. Script/Practice and cleaning decisions belong to this research project. Core-related is an analytical proposal, not certified core-knowledge status. Missing product-line metadata does not mean noncore knowledge.
 
-WHAT THE LABELS MEAN
-Document type, major document type, product line and collection are World Bank metadata. Current Script/Practice codes and cleaning decisions belong to this research project.
-The spreadsheet’s first column uses the Bank’s major document categories. It does not use the project-created “document families.”
-Product lines describe associated Bank activities. A Working Paper can, for example, be associated with Technical Assistance. A product line is not the same thing as a publication format.
-Missing product-line metadata does not mean noncore knowledge. “Core-related” is a proposed analytical grouping, not a certification that all conditions in the 2011 report were met. The initial comparison keeps ASA, other lines and missing labels visible separately.
-Document dates do not tell us when a product-line label was assigned. The corpus covers 1990–2025 and the administrative terminology changed during that period.
-
-No choice in these files changes the source corpus or reruns any topic model.
-
-SOURCE SNAPSHOT
-Original October 2026 World Bank API download and existing project files; review package prepared 4 November 2026. Source hashes and field definitions are in World_Bank_Metadata.json. No proposed recoding or exclusion has been applied to the research data.
+Nothing in the review tool changes the original corpus or refits a topic model.
