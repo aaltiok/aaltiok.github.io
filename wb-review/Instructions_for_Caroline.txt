@@ -1,16 +1,15 @@
-WORLD BANK DOCUMENT REVIEW — SHARED VERSION
+SCRIPT / PRACTICE — CASES TO DISCUSS
 
-Open the complete shared review link supplied by Ali. No ChatGPT or GitHub account is needed. Enter your own name; names identify proposals and are not verified accounts.
+Open the complete shared review link and enter your name. No ChatGPT or GitHub account is required.
 
-1. Start with Retained corpus (13,271 documents), or switch to All original records (41,286) or Excluded records.
-2. Open a document type or Bank product line. Inspect its original metadata and examples.
-3. Select Script/Practice or a knowledge grouping. Inclusion is a separate Include/Exclude decision. No change preserves the baseline; Unresolved records uncertainty. Use individual exceptions where a group rule does not fit.
-4. Click Save my proposal. Saved proposals are visible to everyone with the shared link within a few seconds. Unsaved edits remain in your own form. Use Agreed decision only after discussion.
-5. Shared reviews lists everyone's proposals. Compare approaches previews their effect without changing the research dataset or rerunning models.
-6. If someone saved a newer version of the same decision, the tool asks you to reload that version. It does not silently replace their changes.
-7. Export JSON downloads the shared reviews and revision history as a backup. Import reviews can add earlier file-based reviews; it will not replace conflicting shared versions. Existing browser reviews remain available and can be added explicitly.
-8. Copy review link copies the complete link for another reviewer. Possession of that link provides access; do not post it somewhere you do not want reviewers to enter.
+The page contains eight selected examples from the retained corpus, grouped by the question we need to discuss. Open a title or World Bank record to read the source. The document type and current Script/Practice code are shown beside your proposal.
 
-The Bank's document type, major document type and product line are original metadata. Script/Practice and cleaning decisions belong to this research project. Core-related is an analytical proposal, not certified core-knowledge status. Missing product-line metadata does not mean noncore knowledge.
+Choose Script, Practice or Discuss. A short reason is optional. Click Save proposal to share it. The other reviewer’s saved proposals appear on the same example within a few seconds. Unsaved edits remain in your own form. Each save concerns the individual example; it does not recode the whole document type or change the research dataset.
 
-Nothing in the review tool changes the original corpus or refits a topic model.
+If someone saves a newer version of your proposal elsewhere, reload the saved version before submitting again. The tool retains revision history.
+
+The examples are selected for discussion, not presented as confirmed coding mistakes. Agree on the general rule after considering their primary purpose, institutional role and content.
+
+Copy review link copies the complete link. Everyone with that link can enter the workspace. Nothing is emailed automatically.
+
+Backup and review scope contains a download of all saved reviews and history, including earlier reviews outside this shortlist. Earlier reviews and original corpus files have been preserved.

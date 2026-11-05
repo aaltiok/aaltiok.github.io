@@ -1,0 +1,99 @@
+{
+  "snapshotId": "15820eb0bd41985febb2e86474ffcaaa8729eccba353534f529c23cb63a87186",
+  "cases": [
+    {
+      "id": "26516595",
+      "year": 2016,
+      "title": "Lebanon - Country partnership framework for FY17-FY22 (Vol. 1 of 2)",
+      "type": "Country Assistance Strategy Document",
+      "currentGenre": "Script",
+      "url": "https://documents.worldbank.org/curated/en/111451467996685776",
+      "section": "Country strategies and diagnostics",
+      "question": "When a document both sets a development vision and guides action, which function should determine its code?",
+      "context": "The introduction sets a vision for the relationship between the state and citizens, applies existing Bank strategies, and describes implementation priorities.",
+      "reference": "Introduction, pp. 1–2; implementation, pp. 39–40",
+      "sourcePage": 7,
+      "pdfUrl": "https://documents1.worldbank.org/curated/en/111451467996685776/pdf/94768-CAS-P151022-R2016-0126-OUO-9-Box396270B.pdf"
+    },
+    {
+      "id": "34393802",
+      "year": 2024,
+      "title": "Lebanon - A Systematic Country Diagnostic",
+      "type": "Systematic Country Diagnostic",
+      "currentGenre": "Practice",
+      "url": "https://documents.worldbank.org/curated/en/099092024170038879",
+      "section": "Country strategies and diagnostics",
+      "question": "When a document both sets a development vision and guides action, which function should determine its code?",
+      "context": "The preface develops an explanation of Lebanon’s crisis and recommends concrete interventions in public utilities, health and education.",
+      "reference": "Preface, printed p. 1",
+      "sourcePage": 11,
+      "pdfUrl": "https://documents1.worldbank.org/curated/en/099092024170038879/pdf/BOSIB1db9263530b91b68b16e8047550793.pdf"
+    },
+    {
+      "id": "33723504",
+      "year": 2022,
+      "title": "Nepal - Performance and Learning Review of the Country Partnership Framework for the Period FY19-FY24",
+      "type": "Country Partnership Framework",
+      "currentGenre": "Script",
+      "url": "https://documents.worldbank.org/curated/en/254801646062753584",
+      "section": "Reviews of country strategies",
+      "question": "Should a strategy review be coded by its role in assessing implementation, its role in revising strategy, or its recorded document type?",
+      "context": "Its title identifies it as a Performance and Learning Review, while its recorded document type is Country Partnership Framework and its current code is Script."
+    },
+    {
+      "id": "33809024",
+      "year": 2022,
+      "title": "Lebanon - Performance and Learning Review of the Country Partnership Framework for the Period of FY17-FY22",
+      "type": "Performance and Learning Review",
+      "currentGenre": "Practice",
+      "url": "https://documents.worldbank.org/curated/en/699991653051822455",
+      "section": "Reviews of country strategies",
+      "question": "Should a strategy review be coded by its role in assessing implementation, its role in revising strategy, or its recorded document type?",
+      "context": "This is also a Performance and Learning Review, but its recorded document type is Performance and Learning Review and its current code is Practice."
+    },
+    {
+      "id": "27514776",
+      "year": 2017,
+      "title": "South Sudan - Governance analysis : building sustainable public sector capacity in a challenging context",
+      "type": "Working Paper",
+      "currentGenre": "Script",
+      "url": "https://documents.worldbank.org/curated/en/439881495817910529",
+      "section": "Applied analysis and advice",
+      "question": "How should we distinguish knowledge production from the application of knowledge in country-specific advice?",
+      "context": "The Bank associates this Working Paper with Economic and Sector Work, while the current coding places Working Papers under Script."
+    },
+    {
+      "id": "27976843",
+      "year": 2017,
+      "title": "Republic of Moldova – Moldova country gender action plan",
+      "type": "Working Paper",
+      "currentGenre": "Script",
+      "url": "https://documents.worldbank.org/curated/en/990771505307981800",
+      "section": "Applied analysis and advice",
+      "question": "How should we distinguish knowledge production from the application of knowledge in country-specific advice?",
+      "context": "This country gender action plan is recorded as a Working Paper and is associated with non-lending technical assistance in the Bank metadata."
+    },
+    {
+      "id": "34354314",
+      "year": 2024,
+      "title": "A Local Social Contract Platform for Somalia: Decentralization and Service Delivery from the Bottom up Through Co-production by Communities, Service Providers, and the State",
+      "type": "Policy Note",
+      "currentGenre": "Script",
+      "url": "https://documents.worldbank.org/curated/en/099062824125529414",
+      "section": "Applied analysis and advice",
+      "question": "How should we distinguish knowledge production from the application of knowledge in country-specific advice?",
+      "context": "This Policy Note addresses a country-level social contract and service delivery. It is selected to discuss how a policy argument and practical guidance should be coded."
+    },
+    {
+      "id": "40066498",
+      "year": 2025,
+      "title": "An Evaluation of the World Bank Group Strategy for Fragility, Conflict, and Violence, 2020–25",
+      "type": "IEG Evaluation",
+      "currentGenre": "Practice",
+      "url": "https://documents.worldbank.org/curated/en/099444411042525380",
+      "section": "Evaluation and learning",
+      "question": "Should evaluation count as knowledge production, assessment of practice, or depend on the document’s primary purpose?",
+      "context": "This document evaluates the Bank’s Fragility, Conflict and Violence strategy. Its recorded type is IEG Evaluation, which is currently coded Practice."
+    }
+  ]
+}
