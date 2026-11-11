@@ -157,3 +157,15 @@ test('verified evidence supplies excluded titles and report links without changi
  const realFetch=globalThis.fetch;globalThis.fetch=async url=>new Response('The complete source report.',{headers:{'Content-Type':'text/plain'}});t.after(()=>{globalThis.fetch=realFetch;});
  const text=await s.send('/api/full-text?id=111',{headers:{Cookie:cookie}});assert.equal(text.status,200);assert.equal(await text.text(),'The complete source report.');
 });
+
+test('earlier untyped labels remain separate from type defaults and newer exceptions',async t=>{
+ const PD='Production/Dissemination',OI='Operationalization/Implementation';
+ const catalog=[...structuredClone(sample),{name:'Type not recorded',originalType:'',category:null,review:true,corpusCount:2,ids:',111,112,'}];
+ const s=setup(catalog);t.after(()=>s.env.DB.close());const old=s.env.ASSETS.fetch;
+ const earlier={'111':{type:'Type not recorded',category:PD,earlier:'Script'},'112':{type:'Type not recorded',category:OI,earlier:'Practice'}};
+ s.env.ASSETS.fetch=async req=>new URL(req.url).pathname==='/earlier-labels.json'?Response.json(earlier):old(req);
+ const cookie=await s.login();let state=await s.get(cookie);assert.equal(state.modelContent.records['Type not recorded'].category,null);assert.deepEqual(state.modelContent.earlierLabels,earlier);assert.equal(state.revision,0);
+ state.modelContent.records['Type not recorded'].status='reviewed';state=await(await s.save(cookie,state)).json();assert.equal(state.modelContent.records['Type not recorded'].category,null);assert.equal(state.modelContent.records['Type not recorded'].status,'reviewed');
+ const response=await post(s,cookie,'/api/document',{revision:state.revision,id:'111',type:'Type not recorded',category:OI,actor:'Caroline'});assert.equal(response.status,200);state=await response.json();assert.equal(state.modelContent.exceptions['111'].category,OI);assert.equal(state.modelContent.earlierLabels['111'].category,PD);
+ state=await replay(s,cookie,state,'undo','Caroline');assert.equal(state.modelContent.exceptions['111'],undefined);assert.equal(state.modelContent.earlierLabels['111'].category,PD);
+});
