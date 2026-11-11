@@ -133,6 +133,8 @@ async function ensureHistory(env,sample){
     env.DB.prepare("CREATE TABLE IF NOT EXISTS review_changes(id TEXT PRIMARY KEY, type TEXT NOT NULL, target_kind TEXT NOT NULL, target_id TEXT NOT NULL, actor TEXT NOT NULL, at TEXT NOT NULL, before_json TEXT NOT NULL, after_json TEXT NOT NULL, undone INTEGER NOT NULL DEFAULT 0, redo_available INTEGER NOT NULL DEFAULT 1, undone_order INTEGER NOT NULL DEFAULT 0)"),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS document_exceptions(doc_id TEXT PRIMARY KEY, type TEXT NOT NULL, category TEXT NOT NULL, actor TEXT NOT NULL, at TEXT NOT NULL)'),
     env.DB.prepare('CREATE TABLE IF NOT EXISTS review_hidden_comments(id TEXT PRIMARY KEY)'),
+    env.DB.prepare('CREATE TABLE IF NOT EXISTS corpus_evidence(doc_id TEXT PRIMARY KEY, included INTEGER NOT NULL, type TEXT NOT NULL, title TEXT NOT NULL, year TEXT NOT NULL, reason TEXT NOT NULL, details TEXT NOT NULL) WITHOUT ROWID'),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS evidence_by_type ON corpus_evidence(included,type)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS changes_by_actor ON review_changes(actor,undone)'),
     env.DB.prepare('CREATE INDEX IF NOT EXISTS exceptions_by_type ON document_exceptions(type)')
   ]);
@@ -202,6 +204,44 @@ async function replayChange(request,env){
  return json(await readState(env));
 }
 
+async function evidenceRoute(request,env,url){
+ const path=url.pathname;
+ if(path==='/api/evidence-status'&&request.method==='GET'){
+  const result=await env.DB.prepare('SELECT COUNT(*) AS total,COALESCE(SUM(included),0) AS included FROM corpus_evidence').first();return json({...result,excluded:result.total-result.included});
+ }
+ if(path==='/api/evidence-import'&&request.method==='POST'){
+  const raw=await request.text();if(raw.length>750000)return json({error:'Evidence part is too large.'},413);
+  const bytes=new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(raw))),digest=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+  const manifest=await (await env.ASSETS.fetch(new Request('https://assets.internal/evidence-manifest.json'))).json();
+  if(!manifest.chunks.includes(digest))return json({error:'This is not a verified corpus evidence chunk.'},400);
+  await env.DB.prepare("INSERT OR IGNORE INTO corpus_evidence(doc_id,included,type,title,year,reason,details) SELECT json_extract(value,'$.id'),json_extract(value,'$.included'),json_extract(value,'$.type'),json_extract(value,'$.title'),json_extract(value,'$.year'),json_extract(value,'$.reason'),json_extract(value,'$.details') FROM json_each(?)").bind(raw).run();
+  return json({ok:true});
+ }
+ if(path==='/api/excluded-types'&&request.method==='GET')return json((await env.DB.prepare('SELECT type,COUNT(*) AS count FROM corpus_evidence WHERE included=0 GROUP BY type ORDER BY type').all()).results);
+ if(path==='/api/excluded'&&request.method==='GET'){
+  const q=(url.searchParams.get('q')||'').slice(0,200),type=(url.searchParams.get('type')||'').slice(0,300),offset=Math.max(0,Math.min(30000,Number(url.searchParams.get('offset'))||0));
+  const where="included=0 AND (?='' OR type=?) AND (?='' OR title LIKE ? OR doc_id=?)",args=[type,type,q,'%'+q+'%',q];
+  const count=await env.DB.prepare('SELECT COUNT(*) AS total FROM corpus_evidence WHERE '+where).bind(...args).first();
+  const rows=(await env.DB.prepare('SELECT doc_id AS id,type,title,year,reason FROM corpus_evidence WHERE '+where+' ORDER BY type,doc_id LIMIT 50 OFFSET ?').bind(...args,offset).all()).results;
+  return json({total:count.total,rows,offset});
+ }
+ if(['/api/reading','/api/full-text'].includes(path)&&request.method==='GET'){
+  const id=url.searchParams.get('id');if(!id||!/^\d+$/.test(id))return json({error:'Unknown document.'},404);
+  const row=await env.DB.prepare('SELECT doc_id AS id,included,type,title,year,reason,details FROM corpus_evidence WHERE doc_id=?').bind(id).first();
+  if(!row)return json({error:'This reading is not available yet.'},404);
+  const {details,...meta}=row,data=JSON.parse(details);
+  if(path==='/api/reading')return json({...meta,...data});
+  if(!data.text)return json({error:'No text file is available. Open the original PDF or World Bank record.'},404);
+  const source=new URL(data.text);if(source.protocol!=='https:'||!source.hostname.endsWith('.worldbank.org'))return json({error:'Invalid source link.'},400);
+  let upstream=await fetch(source.href);
+  if(!upstream.ok||upstream.headers.get('Content-Type')?.includes('text/html')){source.hostname='documents1.worldbank.org';upstream=await fetch(source.href);}
+  if(!upstream.ok||upstream.headers.get('Content-Type')?.includes('text/html'))return json({error:'The full text could not be loaded here. Use the original PDF or World Bank record.'},502);
+  const headers=new Headers({'Content-Type':'text/plain; charset=utf-8'});if(upstream.headers.has('Content-Encoding'))headers.set('Content-Encoding',upstream.headers.get('Content-Encoding'));
+  return new Response(upstream.body,{headers});
+ }
+ return null;
+}
+
 export default {
   async fetch(request, env) {
     try { return secure(await route(request, env)); }
@@ -240,6 +280,7 @@ async function route(request, env) {
     return loginPage();
   }
   if (path === '/logout' && request.method === 'POST') return new Response(null, {status:303,headers:{Location:'/', 'Set-Cookie':`${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`}});
+  if(path==='/maintenance-import'&&request.method==='GET')return env.ASSETS.fetch(new Request('https://assets.internal/maintenance.html'));
   if (path.startsWith('/api/')) {
     const sample = await loadSample(env);
     if (['/api/types','/api/sample'].includes(path) && request.method === 'GET') return json(sample.map(({ids,reason,...t})=>t));
@@ -252,6 +293,7 @@ async function route(request, env) {
       return new Response(response.body,{headers});
     }
     await ensureState(env,sample);
+    const evidence=await evidenceRoute(request,env,url);if(evidence)return evidence;
     if (path === '/api/state' && request.method === 'GET') {
       if(url.searchParams.has('revision')){const state=await env.DB.prepare('SELECT revision FROM review_state WHERE id=1').first();if(String(state.revision)===url.searchParams.get('revision'))return json({unchanged:true,revision:state.revision});}
       return json(await readState(env));
