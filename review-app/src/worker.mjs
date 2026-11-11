@@ -57,6 +57,13 @@ async function loadSample(env) {
   if (!response.ok) throw new Error('Corpus assets are not prepared');
   return response.json();
 }
+async function loadEarlierLabels(env){
+  const response=await env.ASSETS.fetch(new Request('https://assets.internal/earlier-labels.json'));
+  if(!response.ok)return {};
+  // The optional asset is absent in older deployments and small test fixtures.
+  if(!response.headers.get('Content-Type')?.includes('application/json'))return {};
+  return response.json();
+}
 async function ensureState(env, sample) {
   await ensureHistory(env,sample);
   const initial = Object.fromEntries(sample.map(t => [t.name, { category: t.category, status: t.review ? 'pending' : 'not-required', by: null, at: null, reviewedBy: null, reviewedAt: null }]));
@@ -86,7 +93,7 @@ async function readState(env, exportAll = false) {
     const redo=await env.DB.prepare('SELECT id, type, target_kind, target_id FROM review_changes WHERE actor=? AND undone=1 AND redo_available=1 ORDER BY undone_order DESC LIMIT 1').bind(actor).first();
     history[actor]={undo,redo};
   }
-  const result={ revision: state.revision, history, modelContent: { schema: 'types-v2', sampleOnly: false, records: JSON.parse(state.records), exceptions:Object.fromEntries(exceptions.results.map(({doc_id,...r})=>[doc_id,r])), events: events.results.reverse() }, privateContent: { comments: comments.results.reverse() } };
+  const result={ revision: state.revision, history, modelContent: { schema: 'types-v2', sampleOnly: false, records: JSON.parse(state.records), earlierLabels:await loadEarlierLabels(env), exceptions:Object.fromEntries(exceptions.results.map(({doc_id,...r})=>[doc_id,r])), events: events.results.reverse() }, privateContent: { comments: comments.results.reverse() } };
   if(exportAll){result.changeHistory=(await env.DB.prepare('SELECT * FROM review_changes ORDER BY rowid').all()).results;result.hiddenComments=(await env.DB.prepare('SELECT * FROM review_hidden_comments').all()).results;}
   return result;
 }
@@ -96,10 +103,14 @@ async function saveState(request, env, sample) {
   const stored = await env.DB.prepare('SELECT records, revision FROM review_state WHERE id=1').first();
   if (stored.revision !== body.revision) return json({ error: 'Someone else saved a newer decision. Reload and review their changes before trying again.' }, 409);
   const records = JSON.parse(stored.records), known = new Set(sample.map(t => t.name)), changes = [], now = new Date().toISOString();
+  const earlier=await loadEarlierLabels(env);
+  const individual=Object.fromEntries((await env.DB.prepare('SELECT doc_id,category FROM document_exceptions').all()).results.map(r=>[r.doc_id,r.category]));
   if (Object.keys(body.records).length !== known.size || Object.keys(body.records).some(t => !known.has(t))) return json({ error: 'Unexpected document types' }, 400);
   for (const type of known) {
     const next = body.records[type], before = records[type];
-    const unassigned=next?.category===null&&sample.find(t=>t.name===type)?.originalType===''&&next.status==='pending';
+    const description=sample.find(t=>t.name===type),ids=(description?.ids||'').split(',').filter(Boolean);
+    const allAssigned=ids.length>0&&ids.every(id=>CATEGORIES.includes(individual[id]||earlier[id]?.category));
+    const unassigned=next?.category===null&&description?.originalType===''&&(next.status==='pending'||(next.status==='reviewed'&&allAssigned));
     if (!next || !(CATEGORIES.includes(next.category)||unassigned) || !STATES.includes(next.status)) return json({ error: 'Invalid category or review status' }, 400);
     if (before.category === next.category && before.status === next.status) continue;
     const status = before.status === 'reviewed' && before.category !== next.category ? 'pending' : next.status;
@@ -206,6 +217,11 @@ async function replayChange(request,env){
 
 async function evidenceRoute(request,env,url){
  const path=url.pathname;
+ if(path==='/api/export-documents'&&request.method==='GET'){
+  const offset=Math.max(0,Math.min(20000,Number(url.searchParams.get('offset'))||0));
+  const rows=(await env.DB.prepare('SELECT doc_id AS id,type,title,year FROM corpus_evidence WHERE included=1 ORDER BY type,doc_id LIMIT 500 OFFSET ?').bind(offset).all()).results;
+  return json({rows,nextOffset:rows.length===500?offset+500:null});
+ }
  if(path==='/api/evidence-status'&&request.method==='GET'){
   const result=await env.DB.prepare('SELECT COUNT(*) AS total,COALESCE(SUM(included),0) AS included FROM corpus_evidence').first();return json({...result,excluded:result.total-result.included});
  }
@@ -308,6 +324,6 @@ async function route(request, env) {
     return json({error:'Not found'},404);
   }
   if (request.method !== 'GET' && request.method !== 'HEAD') return json({error:'Method not allowed'},405);
-  if (!['/','/index.html','/client.mjs','/prototype.mjs'].includes(path)) return json({error:'Not found'},404);
+  if (!['/','/index.html','/client.mjs','/prototype.mjs','/export.mjs','/exceljs.min.js','/exceljs.LICENSE'].includes(path)) return json({error:'Not found'},404);
   return env.ASSETS.fetch(new Request(new URL(path === '/' ? '/index.html' : path,'https://assets.internal'),{method:request.method}));
 }
