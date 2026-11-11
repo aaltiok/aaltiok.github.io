@@ -1,6 +1,7 @@
 const banner=document.getElementById('connection-status'),reloadButton=document.getElementById('reload-shared');
 const undoButton=document.getElementById('undo-change'),redoButton=document.getElementById('redo-change'),practiceButton=document.getElementById('practice-mode'),modeLabel=document.getElementById('save-mode');
-let remote,pending=0,queue=Promise.resolve(),blocked=false,lastJob=0,practice=false,practiceUndo=[],practiceRedo=[];
+const exportButton=document.getElementById('export-excel');
+let remote,pending=0,queue=Promise.resolve(),blocked=false,lastJob=0,practice=false,practiceUndo=[],practiceRedo=[],exporting=false;
 let preferences={person:'Ali',selected:'Report'};
 try{preferences={...preferences,...JSON.parse(localStorage.getItem('wb-review-ui')||'{}')};}catch{}
 const describe=(text,error=false)=>{banner.textContent=text;banner.setAttribute('role',error?'alert':'status');};
@@ -14,6 +15,7 @@ function controls(){
  redoButton.title=practice?'Redo the last practice change':h.redo?`Redo ${preferences.person}’s last change: ${h.redo.type}`:'Nothing to redo';
  practiceButton.disabled=pending>0;practiceButton.setAttribute('aria-pressed',String(practice));practiceButton.textContent=practice?'Leave practice · discard tests':'Practice mode';
  modeLabel.textContent=practice?'Practice · not saved':'Autosave on';
+ if(exportButton){exportButton.disabled=!remote||pending>0||practice||exporting;exportButton.title=practice?'Leave practice to export saved decisions.':'Download all retained documents with the current saved coding.';}
 }
 async function api(path,options){
  const response=await fetch(path,{cache:'no-store',credentials:'same-origin',...options});
@@ -24,7 +26,7 @@ function snapshot(){return {modelContent:remote.modelContent,privateContent:{...
 function deliver(){window.openai.widgetState=snapshot();window.dispatchEvent(new CustomEvent('openai:set_globals',{detail:{globals:{widgetState:window.openai.widgetState}}}));controls();}
 function resetSubmitted(){lastSubmittedSignature=signature(remote.modelContent.records);lastSubmittedComments=JSON.stringify((remote.privateContent.comments||[]).map(commentKey));}
 function localChange(next){practiceUndo.push({before:structuredClone(remote),after:structuredClone(next)});practiceRedo=[];remote=next;resetSubmitted();deliver();describe('Practice mode · nothing is saved. Leave practice to discard these tests.');return Promise.resolve();}
-async function reload(){if(practice){describe('Leave practice to discard tests and reload the saved decisions.');return;}if(pending){describe('Wait for the current save to finish before reloading.');return;}remote=await api('/api/state');blocked=false;resetSubmitted();deliver();describe('Shared decisions are up to date. Autosave is on.');}
+async function reload(){if(practice){describe('Leave practice to discard tests and refresh the saved decisions.');return;}if(pending){describe('Wait for the current save to finish before refreshing.');return;}remote=await api('/api/state');blocked=false;resetSubmitted();deliver();describe('Shared decisions are up to date. Your saved choices are kept.');}
 reloadButton.addEventListener('click',()=>reload().catch(e=>describe(e.message,true)));
 function enqueue(operation,message='Saving shared decision…'){
  if(blocked){deliver();describe('Your edit was not saved. Reload shared decisions, then retry it.',true);return Promise.resolve();}
@@ -40,6 +42,26 @@ async function initialize(){
  const [sample,state]=await Promise.all([api('/api/types'),api('/api/state')]);remote=state;resetSubmitted();document.getElementById('type-data').textContent=JSON.stringify(sample);
  window.wbDocuments=type=>api('/api/documents?type='+encodeURIComponent(type));
  window.wbGet=path=>api(path);
+ exportButton?.addEventListener('click',async()=>{
+  if(practice||pending||exporting)return;exporting=true;controls();
+  try{
+   describe('Preparing Excel export…');await import('/exceljs.min.js');const {buildWorkbook}=await import('/export.mjs');
+   const documents=[];let offset=0;
+   while(offset!==null){
+    let page;
+    for(let attempt=0;attempt<3;attempt++){
+     try{page=await api('/api/export-documents?offset='+offset);break;}
+     catch(e){if(attempt===2||e.status!==503)throw e;await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));}
+    }
+    documents.push(...page.rows);offset=page.nextOffset;describe('Preparing Excel: '+documents.length.toLocaleString('en-US')+' documents…');
+   }
+   const expected=sample.reduce((n,t)=>n+t.corpusCount,0);if(documents.length!==expected)throw new Error('The document list is incomplete. Please try again.');
+   const saved=await api('/api/export'),workbook=buildWorkbook(window.ExcelJS,{documents,types:sample,state:saved});
+   const bytes=await workbook.xlsx.writeBuffer(),blob=new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='world-bank-review-'+new Date().toISOString().slice(0,10)+'.xlsx';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+   describe('Excel downloaded · '+documents.length.toLocaleString('en-US')+' documents with the saved coding.');
+  }catch(e){describe('Excel export failed: '+e.message,true);}finally{exporting=false;controls();}
+ });
  window.wbFullText=async(id,signal)=>{
   const r=await fetch('/api/full-text?id='+encodeURIComponent(id),{credentials:'same-origin',cache:'no-store',signal});
   if(!r.ok){const b=await r.json();throw new Error(b.error||'The source text is unavailable.');}
