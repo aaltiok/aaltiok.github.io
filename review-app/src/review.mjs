@@ -8,11 +8,13 @@ const shortText=s=>cats.reduce((out,c)=>out.split(c).join(short(c)),String(s));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let records=Object.fromEntries(types.map(t=>[t.name,{category:t.category,status:t.review?'pending':'not-required',by:null,at:null,reviewedBy:null,reviewedAt:null}]));
 let selected='Report',person='Ali',events=[],comments=[],scope='all',reviewScope='all',drafts={},openedDocs=new Set();
+let exceptions={},editingDocs=new Set();
 const docCache=new Map(),loadingDocs=new Set(),docErrors=new Map(),pageSize=25;
 let docType='',docQuery='',docPage=0;
 function restore(s){
  if(!['types-v1','types-v2'].includes(s?.modelContent?.schema))return;
  const m=s.modelContent,p=s.privateContent||{};
+ exceptions=m.exceptions||{};
  events=Array.isArray(m.events)?m.events.slice(-14):[];
  for(const t of types){const r=m.records?.[t.name];if(!r||!(cats.includes(r.category)||(t.originalType===''&&r.category===null)))continue;
   const oldReview=[...events].reverse().find(e=>e.type===t.name&&['Marked type reviewed','Flagged type for review'].includes(e.action));
@@ -25,12 +27,12 @@ function restore(s){
 restore(window.openai?.widgetState);
 const current=()=>types.find(t=>t.name===selected);
 const stamp=t=>new Date(t).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-function save(){try{window.openai?.setWidgetState?.({modelContent:{schema:'types-v2',sampleOnly:false,records,events},privateContent:{selected,person,comments}})?.catch(()=>{});}catch{}}
+function save(){try{window.openai?.setWidgetState?.({modelContent:{schema:'types-v2',sampleOnly:false,records,exceptions,events},privateContent:{selected,person,comments}})?.catch(()=>{});}catch{}}
 function visible(){const q=$('type-search').value.toLowerCase();return types.filter(t=>t.name.toLowerCase().includes(q)&&(scope==='all'||(scope==='unassigned'?records[t.name].category===null:records[t.name].category===scope))&&(reviewScope==='all'||records[t.name].status===reviewScope));}
 function renderStats(){
- $('type-stats').innerHTML=[...cats,'review'].map(c=>{const matching=types.filter(t=>c==='review'?records[t.name].status==='pending':records[t.name].category===c),n=matching.length,count=matching.reduce((a,t)=>a+t.corpusCount,0);return `<button class="t-stat" data-scope="${c}" aria-label="${c==='review'?'Show types needing review':'Show all '+c+' types'}" aria-pressed="${c==='review'?reviewScope==='pending':scope===c}"><span>${c==='review'?'⚑ Needs review':short(c)+' ('+code(c)+')'}<br><span>${count.toLocaleString('en-US')} documents${c==='review'&&n===0?' · Queue clear':''}</span></span><strong>${n} <span>types</span></strong></button>`;}).join('');
+ $('type-stats').innerHTML=[...cats,'review'].map(c=>{const matching=types.filter(t=>c==='review'?records[t.name].status==='pending':records[t.name].category===c),n=matching.length;let count=matching.reduce((a,t)=>a+t.corpusCount,0);if(c!=='review')for(const r of Object.values(exceptions)){if(records[r.type]?.category===c)count--;if(r.category===c)count++;}return `<button class="t-stat" data-scope="${c}" aria-label="${c==='review'?'Show types needing review':'Show all '+c+' types'}" aria-pressed="${c==='review'?reviewScope==='pending':scope===c}"><span>${c==='review'?'⚑ Needs review':short(c)+' ('+code(c)+')'}<br><span>${count.toLocaleString('en-US')} documents${c==='review'&&n===0?' · Queue clear':''}</span></span><strong>${n} <span>types</span></strong></button>`;}).join('');
  $('type-review-progress').textContent=`${types.filter(t=>records[t.name].status==='pending').length} pending · ${types.filter(t=>records[t.name].status==='reviewed').length} reviewed · ${types.filter(t=>records[t.name].status==='not-required').length} no review needed`;
- const unassigned=types.filter(t=>records[t.name].category===null).reduce((n,t)=>n+t.corpusCount,0);$('type-unassigned-status').textContent=unassigned?`${unassigned.toLocaleString('en-US')} documents unassigned; see the review queue.`:'';
+ const unassigned=types.filter(t=>records[t.name].category===null).reduce((n,t)=>n+t.corpusCount,0)-Object.values(exceptions).filter(r=>records[r.type]?.category===null).length,n=Object.keys(exceptions).length;$('type-unassigned-status').textContent=(unassigned?`${unassigned.toLocaleString('en-US')} documents unassigned. `:'')+`${n} individual exception${n===1?'':'s'}.`;
 }
 function statusMark(r){return r.status==='pending'?'<span class="t-flag">⚑ Needs review</span>':r.status==='reviewed'?`<span class="t-reviewed">✓ Reviewed${r.reviewedBy?' · '+esc(r.reviewedBy):''}</span>`:'<span class="t-muted" style="display:block;font-size:11px">No review needed</span>';}
 function renderList(){const list=visible();$('type-visible').textContent=list.length+' of '+types.length;$('type-list').innerHTML=list.length?list.map(t=>`<button class="t-grid t-type" data-type="${esc(t.name)}" aria-pressed="${selected===t.name}"><span>${esc(t.name)}${statusMark(records[t.name])}</span><span class="t-count">${t.corpusCount.toLocaleString('en-US')}</span><span class="t-category" data-tooltip="${esc(records[t.name].category)}">${code(records[t.name].category)}</span></button>`).join(''):'<p class="t-muted">No types in this view. The review queue may be clear; change the filters to see other types.</p>';}
@@ -52,9 +54,9 @@ function renderDocuments(){
  const start=docPage*pageSize,shown=docs.slice(start,start+pageSize);
  $('doc-page').textContent=docs.length?`${start+1}–${start+shown.length} of ${docs.length.toLocaleString('en-US')}`:'No matching titles';
  $('doc-prev').disabled=docPage===0;$('doc-next').disabled=docPage>=pages-1;
- $('type-doc-list').innerHTML=shown.map(d=>`<details class="t-doc" data-doc="${esc(d.id)}"${openedDocs.has(d.id)?' open':''}><summary><span>${esc(d.year)}</span><span>${esc(d.title)}</span></summary><div class="t-muted" style="margin-top:8px">${records[t.name].category?code(records[t.name].category)+' · inherited from type':'Unassigned · no document type recorded'}${d.earlier?' · earlier individual coding: '+esc(d.earlier):''}</div><p class="t-opening">${esc(d.text)} …</p><div class="t-muted">${Math.min(100,d.text.split(/\s+/).length)} words · original opening · document ${esc(d.id)}</div></details>`).join('');
+ $('type-doc-list').innerHTML=shown.map(d=>{const x=exceptions[d.id],category=x?.category||records[t.name].category;return `<details class="t-doc" data-doc="${esc(d.id)}"${openedDocs.has(d.id)?' open':''}><summary><span>${esc(d.year)}</span><span class="t-title">${esc(d.title)}</span><span class="t-doc-label">${code(category)}${x?' · exception':''}</span></summary><div class="t-muted" style="margin-top:8px">${x?code(x.category)+' · individual exception · '+esc(x.by)+' · '+esc(stamp(x.at)):category?code(category)+' · type default':'Unassigned · no document type recorded'}${d.earlier?' · earlier individual coding: '+esc(d.earlier):''}</div><p class="t-opening">${esc(d.text)} …</p><div class="t-muted">${Math.min(100,d.text.split(/\s+/).length)} words · original opening · document ${esc(d.id)}</div><button data-assign-document="${esc(d.id)}" class="t-assign">${x?'Change individual label':'Assign individually'}</button>${editingDocs.has(d.id)?`<div class="t-exception-controls" role="group" aria-label="Assign document ${esc(d.id)}"><span class="t-muted">This document only</span>${cats.map(c=>`<button data-exception-id="${esc(d.id)}" data-exception-category="${c}" aria-pressed="${x?.category===c}">${code(c)}</button>`).join('')}<button data-inherit-document="${esc(d.id)}"${x?'':' disabled'}>Use type default</button></div>`:''}</details>`;}).join('');
 }
-function renderActivity(){const c=comments.filter(x=>x.type===selected),h=events.filter(x=>x.type===selected).reverse();$('type-comment-title').textContent=`Type-level comments${c.length?' ('+c.length+')':''}`;$('type-comments').innerHTML=c.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><p>${esc(x.text)}</p></div>`).join('');$('type-note-person').textContent=person;$('type-note').value=drafts[selected+'|'+person]||'';$('type-history-title').textContent=`Type-level change history${h.length?' ('+h.length+')':''}`;$('type-history').innerHTML=h.length?h.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><br>${esc(shortText(x.action))}</div>`).join(''):'<p class="t-muted">No type-level changes yet.</p>';}
+function renderActivity(){const c=comments.filter(x=>x.type===selected),h=events.filter(x=>x.type===selected).reverse();$('type-comment-title').textContent=`Type-level comments${c.length?' ('+c.length+')':''}`;$('type-comments').innerHTML=c.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><p>${esc(x.text)}</p></div>`).join('');$('type-note-person').textContent=person;$('type-note').value=drafts[selected+'|'+person]||'';$('type-history-title').textContent=`Change history${h.length?' ('+h.length+')':''}`;$('type-history').innerHTML=h.length?h.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><br>${esc(shortText(x.action))}</div>`).join(''):'<p class="t-muted">No changes yet.</p>';}
 function renderDetail(){
  const t=current(),r=records[selected];
  $('type-heading').innerHTML=`<div class="t-kicker">${t.originalType===''?'Missing metadata group':'Document type'}</div><h2>${esc(t.name)}</h2><div class="t-muted" style="margin-top:6px">${t.corpusCount.toLocaleString('en-US')} documents · all titles and openings available</div>`;
@@ -62,7 +64,8 @@ function renderDetail(){
  $('type-categories').innerHTML=cats.map(c=>`<button data-category="${c}" aria-label="Classify type as ${c}" data-tooltip="${c}" aria-pressed="${r.category===c}">${short(c)} (${code(c)})</button>`).join('');
  $('type-review-controls').innerHTML=r.status==='pending'?`<span class="t-flag">⚑ Needs review</span><button data-review-action="reviewed"${r.category===null?' disabled title="Choose a classification before completing review"':''}>✓ Mark reviewed</button>`:r.status==='reviewed'?'<span class="t-reviewed">✓ Reviewed</span><button data-review-action="pending">Reopen review</button>':'<span>No review needed</span><button data-review-action="pending">Request review</button>';
  $('type-reviewed-meta').textContent=r.status==='reviewed'&&r.reviewedBy?`Review completed by ${r.reviewedBy} · ${stamp(r.reviewedAt)}`:'';
- $('type-last').textContent=r.by?`Type last changed by ${r.by} · ${stamp(r.at)}`:(t.reason||'Classification assigned to the whole type.')+(r.status==='pending'?' Review whether this label fits the whole group.':'');
+ $('type-last').textContent=r.by?`Type last changed by ${r.by} · ${stamp(r.at)}`:'';
+ const n=Object.values(exceptions).filter(x=>x.type===selected).length;$('type-current').textContent+=n?` · ${n} individual exception${n===1?'':'s'}`:'';
  $('type-person').value=person;renderDocuments();renderActivity();
 }
 function render(){renderStats();renderList();renderDetail();}
@@ -77,6 +80,8 @@ root.addEventListener('click',e=>{
  if(b.id==='doc-prev'){docPage--;renderDocuments();}
  if(b.id==='doc-next'){docPage++;renderDocuments();}
  if(b.id==='doc-retry'){docErrors.delete(selected);renderDocuments();}
+ if(b.dataset.assignDocument){const id=b.dataset.assignDocument;openedDocs.add(id);editingDocs.has(id)?editingDocs.delete(id):editingDocs.add(id);renderDocuments();}
+ if(b.dataset.exceptionId||b.dataset.inheritDocument){const id=b.dataset.exceptionId||b.dataset.inheritDocument;openedDocs.add(id);window.wbSetException({id,type:selected,category:b.dataset.exceptionCategory||null,actor:person});}
  if(b.id==='type-post'){const text=$('type-note').value.trim();if(!text){$('type-status').textContent='Write a comment first.';return;}comments.push({type:selected,by:person,at:new Date().toISOString(),text:text.slice(0,350)});comments=comments.slice(-12);drafts[selected+'|'+person]='';renderActivity();$('type-status').textContent=`Comment on ${selected} recorded as ${person}.`;save();}
 });
 root.addEventListener('toggle',e=>{const id=e.target.dataset?.doc;if(id){if(e.target.open)openedDocs.add(id);else openedDocs.delete(id);}},true);
@@ -84,7 +89,7 @@ $('type-person').addEventListener('change',e=>{person=e.target.value;renderDetai
 $('type-note').addEventListener('input',e=>{drafts[selected+'|'+person]=e.target.value;});
 $('type-search').addEventListener('input',filters);$('type-filter').addEventListener('change',filters);$('type-review-filter').addEventListener('change',filters);
 $('doc-search').addEventListener('input',e=>{docQuery=e.target.value.toLowerCase();docPage=0;renderDocuments();});
-window.addEventListener('openai:set_globals',e=>{const s=e.detail?.globals?.widgetState;if(!['types-v1','types-v2'].includes(s?.modelContent?.schema))return;restore(s);render();});
+window.addEventListener('openai:set_globals',e=>{const s=e.detail?.globals?.widgetState;if(!['types-v1','types-v2'].includes(s?.modelContent?.schema))return;restore(s);render();$('type-status').textContent='';});
 $('type-doc-panel').open=true;render();
 })();
 
