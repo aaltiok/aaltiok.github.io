@@ -31,9 +31,10 @@ async function reload() {
 reloadButton.addEventListener('click',()=>reload().catch(e=>describe(e.message,true)));
 
 async function initialize() {
-  const [sample,state] = await Promise.all([api('/api/sample'),api('/api/state')]);
+  const [sample,state] = await Promise.all([api('/api/types'),api('/api/state')]);
   remote=state;resetSubmitted();
   document.getElementById('type-data').textContent=JSON.stringify(sample);
+  window.wbDocuments=type=>api('/api/documents?type='+encodeURIComponent(type));
   window.openai = {
     widgetState:snapshot(),
     setWidgetState(next) {
