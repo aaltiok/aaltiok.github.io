@@ -39,6 +39,14 @@ function enqueue(operation,message='Saving shared decision…'){
 async function initialize(){
  const [sample,state]=await Promise.all([api('/api/types'),api('/api/state')]);remote=state;resetSubmitted();document.getElementById('type-data').textContent=JSON.stringify(sample);
  window.wbDocuments=type=>api('/api/documents?type='+encodeURIComponent(type));
+ window.wbGet=path=>api(path);
+ window.wbFullText=async(id,signal)=>{
+  const r=await fetch('/api/full-text?id='+encodeURIComponent(id),{credentials:'same-origin',cache:'no-store',signal});
+  if(!r.ok){const b=await r.json();throw new Error(b.error||'The source text is unavailable.');}
+  const reader=r.body.getReader(),decoder=new TextDecoder();let text='',size=0;
+  while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>8*1024*1024){await reader.cancel();text+='\n\n[Large report: open the original PDF to continue.]';break;}text+=decoder.decode(value,{stream:true});}
+  return text+decoder.decode();
+ };
  window.wbSetException=({id,type,category,actor})=>{
   if(practice){const next=structuredClone(remote);next.modelContent.exceptions||={};if(category===null)delete next.modelContent.exceptions[id];else next.modelContent.exceptions[id]={type,category,by:actor,at:new Date().toISOString()};return localChange(next);}
   return enqueue(()=>api('/api/document',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:remote.revision,id,type,category,actor})}),'Saving individual document assignment…');
