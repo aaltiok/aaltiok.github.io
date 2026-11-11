@@ -14,9 +14,9 @@ function database(){
  }
  return {prepare:prepared,async batch(statements){db.exec('BEGIN');try{const out=statements.map(s=>s.execute());db.exec('COMMIT');return out;}catch(e){db.exec('ROLLBACK');throw e;}},close(){db.close();}};
 }
-function setup(){
+function setup(catalog=sample){
  const DB=database();let assetReads=0;
- const env={DB,REVIEW_PASSWORD:'test-password-not-for-production',SESSION_SECRET:'test-session-secret-not-for-production-123456789',ASSETS:{async fetch(request){assetReads++;const p=new URL(typeof request==='string'?request:request.url).pathname;return p==='/sample.json'?Response.json(sample):new Response('private application content',{headers:{'Content-Type':'text/html'}});}}};
+ const env={DB,REVIEW_PASSWORD:'test-password-not-for-production',SESSION_SECRET:'test-session-secret-not-for-production-123456789',ASSETS:{async fetch(request){assetReads++;const p=new URL(typeof request==='string'?request:request.url).pathname;return p==='/types.json'?Response.json(catalog):p.startsWith('/documents/')?Response.json([{id:'fixture',title:'A protected title',text:'Opening text'}]):new Response('private application content',{headers:{'Content-Type':'text/html'}});}}};
  const send=(path,options={})=>worker.fetch(new Request(origin+path,options),env);
  const login=async()=>{const r=await send('/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({password:env.REVIEW_PASSWORD}).toString()});assert.equal(r.status,303);return r.headers.get('Set-Cookie').split(';')[0];};
  const get=async(cookie,path='/api/state')=>{const r=await send(path,{headers:{Cookie:cookie}});assert.equal(r.status,200);return r.json();};
@@ -26,7 +26,7 @@ function setup(){
 
 test('unauthenticated requests cannot read page data, APIs or exports; indexing is disabled',async t=>{
  const s=setup();t.after(()=>s.env.DB.close());
- for(const path of ['/api/sample','/api/state','/api/export']){const r=await s.send(path);assert.equal(r.status,401);assert.equal(r.headers.get('X-Robots-Tag'),'noindex, nofollow, noarchive');assert(!JSON.stringify(await r.json()).includes('Private sample title'));}
+ for(const path of ['/api/sample','/api/types','/api/documents?type=Report','/api/state','/api/export']){const r=await s.send(path);assert.equal(r.status,401);assert.equal(r.headers.get('X-Robots-Tag'),'noindex, nofollow, noarchive');assert(!JSON.stringify(await r.json()).includes('Private sample title'));}
  for(const path of ['/','/sample.json','/client.mjs']){const r=await s.send(path);assert.equal(r.status,200);assert((await r.text()).includes('Shared password'));assert.match(r.headers.get('Cache-Control'),/no-store/);}
  assert.equal(s.assetReads,0);assert.match(await (await s.send('/robots.txt')).text(),/Disallow: \//);
 });
@@ -68,4 +68,29 @@ test('repeated password guesses are rate limited and missing configuration fails
  const s=setup();t.after(()=>s.env.DB.close());let r;
  for(let i=0;i<11;i++)r=await s.send('/login',{method:'POST',headers:{Origin:origin,'CF-Connecting-IP':'192.0.2.1'},body:'password=wrong'});
  assert.equal(r.status,429);delete s.env.SESSION_SECRET;assert.equal((await s.send('/')).status,503);
+});
+
+test('expanding the corpus preserves existing decisions, attribution, comments and history',async t=>{
+ const catalog=structuredClone(sample),s=setup(catalog);t.after(()=>s.env.DB.close());
+ const cookie=await s.login();let state=await s.get(cookie);
+ state.modelContent.records.Report.status='reviewed';
+ state=await (await s.save(cookie,state,'Caroline',[{type:'Report',by:'Caroline',at:'2026-11-10T12:00:00.000Z',text:'A saved prototype note.'}])).json();
+ const before=structuredClone(state);
+ for(let i=0;i<115;i++)catalog.push({name:'Additional type '+i,category:'Production/Dissemination',review:false,corpusCount:1,asset:'type-'+String(i).padStart(3,'0')});
+ catalog.push({name:'Type not recorded',originalType:'',category:null,review:true,corpusCount:184,asset:'type-117'});
+ state=await s.get(cookie);
+ assert.equal(Object.keys(state.modelContent.records).length,118);
+ assert.deepEqual(state.modelContent.records.Report,before.modelContent.records.Report);
+ assert.deepEqual(state.modelContent.events,before.modelContent.events);
+ assert.deepEqual(state.privateContent.comments,before.privateContent.comments);
+ assert.equal(state.revision,before.revision+1);
+ assert.equal((await s.get(cookie)).revision,state.revision);
+ assert.equal(state.modelContent.records['Type not recorded'].category,null);
+ state.modelContent.records['Additional type 0'].status='reviewed';
+ const largeSave=await s.save(cookie,state);assert.equal(largeSave.status,200);
+ state=await largeSave.json();state.modelContent.records['Type not recorded'].status='reviewed';
+ assert.equal((await s.save(cookie,state)).status,400);
+ const outdated=await s.save(cookie,before);assert.equal(outdated.status,409);
+ const docs=await s.send('/api/documents?type='+encodeURIComponent('Additional type 0'),{headers:{Cookie:cookie}});assert.equal(docs.status,200);assert.equal((await docs.json())[0].title,'A protected title');
+ assert.equal((await s.send('/api/documents?type=../../sample.json',{headers:{Cookie:cookie}})).status,404);
 });
