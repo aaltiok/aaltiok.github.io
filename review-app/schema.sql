@@ -39,3 +39,9 @@ CREATE TABLE IF NOT EXISTS review_changes (
 );
 CREATE INDEX IF NOT EXISTS changes_by_actor ON review_changes(actor,undone);
 CREATE INDEX IF NOT EXISTS exceptions_by_type ON document_exceptions(type);
+CREATE TABLE IF NOT EXISTS corpus_evidence (
+  doc_id TEXT PRIMARY KEY, included INTEGER NOT NULL, type TEXT NOT NULL,
+  title TEXT NOT NULL, year TEXT NOT NULL, reason TEXT NOT NULL,
+  details TEXT NOT NULL
+) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS evidence_by_type ON corpus_evidence(included,type);
