@@ -1,0 +1,84 @@
+<div id="wb-type-review" aria-label="Document type classification review">
+<style>
+#wb-type-review{color-scheme:light dark;--paper:light-dark(#fffefa,#202421);--ink:light-dark(#26362e,#e6ede7);--soft:light-dark(#f0f2eb,#2b322d);--line:light-dark(#dbe0d6,#465048);--muted:light-dark(#59675e,#b0bdb3);--active:light-dark(#254e3d,#b9dfc8);--onactive:light-dark(#fff,#173024);--flag:light-dark(#735219,#ebcc87);font:14px/1.45 system-ui,sans-serif;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+#wb-type-review *{box-sizing:border-box;min-width:0;}
+#wb-type-review [hidden]{display:none!important;}
+#wb-type-review button,#wb-type-review input,#wb-type-review select,#wb-type-review textarea{font:inherit;color:inherit;}
+#wb-type-review button{cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:left;}
+#wb-type-review button:hover{background:var(--soft);}
+#wb-type-review button[aria-pressed="true"]{background:var(--active);color:var(--onactive);border-color:var(--active);}
+#wb-type-review input,#wb-type-review select,#wb-type-review textarea{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px;}
+#wb-type-review button:focus-visible,#wb-type-review input:focus-visible,#wb-type-review select:focus-visible,#wb-type-review textarea:focus-visible{outline:2px solid var(--active);outline-offset:2px;}
+#wb-type-review h2,#wb-type-review h3,#wb-type-review p{margin:0;}
+#wb-type-review h2{font:500 21px/1.3 Georgia,serif;}
+#wb-type-review h3{font-size:14px;font-weight:500;}
+#wb-type-review .t-head{padding:18px 22px;padding-right:92px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+#wb-type-review .t-kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+#wb-type-review .t-muted{font-size:12px;color:var(--muted);}
+#wb-type-review .t-person{display:flex;align-items:center;gap:7px;font-size:12px;}
+#wb-type-review .t-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 22px 12px;}
+#wb-type-review .t-stat{background:var(--soft);display:flex;gap:12px;justify-content:space-between;align-items:center;}
+#wb-type-review .t-stat strong{font-size:25px;font-weight:500;white-space:nowrap;font-variant-numeric:tabular-nums;}
+#wb-type-review .t-stat span{font-size:12px;}
+#wb-type-review .t-dashboard-note{padding:0 22px 12px;font-size:11px;color:var(--muted);}
+#wb-type-review .t-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+#wb-type-review .t-toolbar input{flex:1 1 180px;}
+#wb-type-review .t-toolbar select{flex:1 1 170px;}
+#wb-type-review .t-layout{display:grid;grid-template-columns:minmax(300px,1fr) minmax(320px,1.2fr);}
+#wb-type-review .t-types{padding:14px 12px;border-right:1px solid var(--line);}
+#wb-type-review .t-type-head{display:flex;justify-content:space-between;align-items:center;padding:0 6px 12px;gap:8px;}
+#wb-type-review .t-grid{display:grid;grid-template-columns:minmax(0,1fr) 56px 60px;gap:8px;align-items:center;}
+#wb-type-review .t-columns{padding:0 9px 7px;font-size:11px;color:var(--muted);}
+#wb-type-review .t-type{width:100%;margin-bottom:5px;font-size:12px;border-color:transparent;padding:10px 9px;}
+#wb-type-review .t-count{text-align:right;font-variant-numeric:tabular-nums;}
+#wb-type-review .t-category{font-size:11px;}
+#wb-type-review .t-flag{color:var(--flag);font-size:11px;display:block;margin-top:3px;}
+#wb-type-review .t-type[aria-pressed="true"] .t-flag{color:inherit;}
+#wb-type-review .t-detail{padding:18px 22px;}
+#wb-type-review .t-detail-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+#wb-type-review .t-current{display:inline-block;margin-top:12px;background:var(--soft);padding:5px 9px;border-radius:5px;font-size:12px;}
+#wb-type-review .t-choice{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0;}
+#wb-type-review .t-choice button{flex:1 1 175px;font-size:12px;}
+#wb-type-review .t-check{display:flex;gap:7px;align-items:center;margin:8px 0;font-size:12px;}
+#wb-type-review .t-check input{width:16px;height:16px;accent-color:var(--active);}
+#wb-type-review .t-review-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 6px;font-size:12px;}
+#wb-type-review .t-review-controls button{font-size:12px;}
+#wb-type-review .t-reviewed{color:var(--active);font-size:11px;display:block;margin-top:3px;}
+#wb-type-review .t-type[aria-pressed="true"] .t-reviewed{color:inherit;}
+#wb-type-review .t-legend{font-size:11px;color:var(--muted);margin:10px 7px;}
+#wb-type-review details{border-top:1px solid var(--line);padding-top:11px;margin-top:16px;font-size:12px;}
+#wb-type-review summary{cursor:pointer;}
+#wb-type-review .t-docs{margin-top:8px;}
+#wb-type-review .t-doc{margin-top:0;border-top:0;border-bottom:1px solid var(--line);padding:9px 0;}
+#wb-type-review .t-doc summary{display:flex;gap:8px;align-items:flex-start;}
+#wb-type-review .t-doc summary span:first-child{min-width:35px;color:var(--muted);}
+#wb-type-review .t-doc summary span:last-child{flex:1;}
+#wb-type-review .t-opening{font:14px/1.65 Georgia,serif;margin:10px 0;overflow-wrap:anywhere;}
+#wb-type-review .t-doc button{font-size:11px;}
+#wb-type-review .t-activity{padding:8px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere;}
+#wb-type-review .t-activity p{margin-top:4px;white-space:pre-wrap;}
+#wb-type-review textarea{display:block;width:100%;min-height:58px;margin:8px 0;resize:vertical;}
+#wb-type-review .t-status{font-size:12px;color:var(--muted);margin-top:10px;}
+#wb-type-review .t-footer{padding:10px 22px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);}
+@media(max-width:700px){#wb-type-review .t-layout{grid-template-columns:1fr;}#wb-type-review .t-types{border-right:0;border-bottom:1px solid var(--line);}#wb-type-review .t-stats{padding-left:12px;padding-right:12px;gap:6px;}#wb-type-review .t-stat{flex-direction:column-reverse;align-items:flex-start;gap:4px;}#wb-type-review .t-detail{padding:16px;}#wb-type-review .t-head{padding:16px;}#wb-type-review .t-grid{grid-template-columns:minmax(0,1fr) 48px 56px;gap:6px;}}
+@media(pointer:coarse){#wb-type-review button,#wb-type-review select{min-height:44px;}#wb-type-review input,#wb-type-review textarea{font-size:16px;}}
+
+#wb-type-review .t-head{padding-right:22px;}
+#wb-type-review #type-list{max-height:64vh;overflow:auto;overscroll-behavior:contain;}
+#wb-type-review .t-document-tools{margin-top:12px;}
+#wb-type-review #doc-search{width:100%;}
+#wb-type-review .t-document-pages{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;}
+#wb-type-review .t-document-pages button{font-size:11px;}
+#wb-type-review button:disabled{opacity:.45;cursor:default;}
+#wb-type-review .t-detail{min-width:0;}
+@media(min-width:701px){#wb-type-review .t-detail{max-height:78vh;overflow:auto;overscroll-behavior:contain;}}
+</style>
+<header class="t-head"><div><div class="t-kicker">World Bank · shared type coding</div><h2>Classify document types</h2><div class="t-muted">13,271 documents · 117 recorded types + missing-type group</div></div><label class="t-person" for="type-person">Working as <select id="type-person"><option>Ali</option><option>Caroline</option></select></label></header>
+<div id="type-stats" class="t-stats" aria-label="Type classification dashboard"></div>
+<div class="t-dashboard-note">Full retained corpus · classifications apply to types · review status is separate from PD/OI. <span id="type-unassigned-status"></span></div>
+<div class="t-toolbar"><input id="type-search" type="search" aria-label="Search document types" placeholder="Find a document type"><select id="type-filter" aria-label="Filter by PD or OI"><option value="all">All types</option><option value="Production/Dissemination">PD · Prod./Diss.</option><option value="Operationalization/Implementation">OI · Oper./Impl.</option><option value="unassigned">Unassigned</option></select><select id="type-review-filter" aria-label="Filter review status"><option value="all">All review states</option><option value="pending">⚑ Needs review</option><option value="reviewed">✓ Reviewed</option><option value="not-required">No review needed</option></select></div>
+<div class="t-layout"><nav class="t-types" aria-label="Document types"><div class="t-type-head"><h3>Document types</h3><span id="type-visible" class="t-muted"></span></div><div class="t-grid t-columns"><span>Type</span><span class="t-count">Docs</span><span>Category</span></div><div id="type-list"></div><div class="t-legend">PD = Prod./Diss. · OI = Oper./Impl.</div><div id="type-review-progress" class="t-legend" aria-live="polite"></div></nav><main class="t-detail"><div id="type-heading"></div><div id="type-current" class="t-current"></div><div id="type-categories" class="t-choice"></div><div id="type-review-controls" class="t-review-controls"></div><div id="type-reviewed-meta" class="t-muted"></div><div id="type-last" class="t-muted" aria-live="polite"></div><details id="type-doc-panel"><summary id="type-doc-title">Inspect documents in this type</summary><div id="type-sample-note" class="t-muted" style="margin-top:8px"></div><div class="t-document-tools"><input id="doc-search" type="search" aria-label="Search titles in this type" placeholder="Search titles, year or document ID"><div class="t-document-pages"><button id="doc-prev">Previous</button><span id="doc-page" class="t-muted" aria-live="polite"></span><button id="doc-next">Next</button></div></div><div id="type-doc-list" class="t-docs"></div></details><details id="type-comment-panel"><summary id="type-comment-title">Type-level comments</summary><div id="type-comments"></div><label for="type-note" class="t-muted">Comment as <span id="type-note-person">Ali</span></label><textarea id="type-note" maxlength="350" placeholder="Leave a review note for this type"></textarea><button id="type-post">Post comment</button></details><details><summary id="type-history-title">Type-level change history</summary><div id="type-history"></div></details><div id="type-status" class="t-status" role="status"></div></main></div>
+<footer class="t-footer">Private review · all 13,271 titles and 100-word openings · one shared classification per type · research files unchanged</footer>
+<script type="application/json" id="type-data">[]</script>
+
+</div>
