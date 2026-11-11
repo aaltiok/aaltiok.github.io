@@ -17,7 +17,8 @@ function secure(response) {
   headers.set('X-Frame-Options', 'DENY');
   headers.set('Content-Security-Policy', CSP);
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  return new Response(response.body, { status: response.status, headers });
+  // Document bundles are already gzipped. Avoid Cloudflare compressing them twice.
+  return new Response(response.body, { status: response.status, headers, encodeBody: headers.has('Content-Encoding') ? 'manual' : 'automatic' });
 }
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
@@ -51,20 +52,32 @@ function loginPage(error = '') {
   return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Private document type review</title><style>body{font:16px/1.5 system-ui;margin:10vh auto;padding:24px;max-width:440px;color:#26362e;background:#fffefa}h1{font:28px Georgia,serif}label,input,button{display:block}input,button{font:inherit;box-sizing:border-box;width:100%;padding:12px;margin:8px 0 16px;border:1px solid #cbd4cc;border-radius:6px}button{background:#254e3d;color:white}p{color:#59675e}</style></head><body><h1>Document type review</h1><p>Private workspace for Ali and Caroline.</p>${error ? `<p role="alert">${error}</p>` : ''}<form method="post" action="/login"><label for="password">Shared password</label><input id="password" name="password" type="password" required maxlength="300" autocomplete="current-password"><button>Enter review workspace</button></form></body></html>`, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 async function loadSample(env) {
-  const response = await env.ASSETS.fetch(new Request('https://assets.internal/sample.json'));
-  if (!response.ok) throw new Error('Sample assets are not prepared');
+  const response = await env.ASSETS.fetch(new Request('https://assets.internal/types.json'));
+  if (!response.ok) throw new Error('Corpus assets are not prepared');
   return response.json();
 }
 async function ensureState(env, sample) {
   const initial = Object.fromEntries(sample.map(t => [t.name, { category: t.category, status: t.review ? 'pending' : 'not-required', by: null, at: null, reviewedBy: null, reviewedAt: null }]));
   await env.DB.prepare('INSERT OR IGNORE INTO review_state(id, records, revision) VALUES(1, ?, 0)').bind(JSON.stringify(initial)).run();
+  // Expand the prototype additively. Keep every existing decision and attribution.
+  // A revision check prevents migration from overwriting a concurrent human save.
+  for (let retry=0;retry<3;retry++) {
+    const stored=await env.DB.prepare('SELECT records, revision FROM review_state WHERE id=1').first();
+    const existing=JSON.parse(stored.records);
+    const additions=Object.keys(initial).filter(type=>!Object.hasOwn(existing,type));
+    if (!additions.length) return;
+    for (const type of additions) existing[type]=initial[type];
+    const result=await env.DB.prepare('UPDATE review_state SET records=?, revision=revision+1 WHERE id=1 AND revision=? RETURNING revision').bind(JSON.stringify(existing),stored.revision).all();
+    if(result.results.length) return;
+  }
+  throw new Error('Review migration conflicted with concurrent edits');
 }
 async function readState(env, exportAll = false) {
   const state = await env.DB.prepare('SELECT records, revision FROM review_state WHERE id=1').first();
   const limit = exportAll ? '' : ' LIMIT 14';
   const events = await env.DB.prepare(`SELECT id, type, actor AS by, at, action FROM review_events ORDER BY rowid DESC${limit}`).all();
   const comments = await env.DB.prepare(`SELECT id, type, actor AS by, at, text FROM review_comments ORDER BY rowid DESC${exportAll ? '' : ' LIMIT 12'}`).all();
-  return { revision: state.revision, modelContent: { schema: 'types-v2', sampleOnly: true, records: JSON.parse(state.records), events: events.results.reverse() }, privateContent: { comments: comments.results.reverse() } };
+  return { revision: state.revision, modelContent: { schema: 'types-v2', sampleOnly: false, records: JSON.parse(state.records), events: events.results.reverse() }, privateContent: { comments: comments.results.reverse() } };
 }
 async function saveState(request, env, sample) {
   const body = await request.json(), actor = body.actor;
@@ -75,7 +88,8 @@ async function saveState(request, env, sample) {
   if (Object.keys(body.records).length !== known.size || Object.keys(body.records).some(t => !known.has(t))) return json({ error: 'Unexpected document types' }, 400);
   for (const type of known) {
     const next = body.records[type], before = records[type];
-    if (!next || !CATEGORIES.includes(next.category) || !STATES.includes(next.status)) return json({ error: 'Invalid category or review status' }, 400);
+    const unassigned=next?.category===null&&sample.find(t=>t.name===type)?.originalType===''&&next.status==='pending';
+    if (!next || !(CATEGORIES.includes(next.category)||unassigned) || !STATES.includes(next.status)) return json({ error: 'Invalid category or review status' }, 400);
     if (before.category === next.category && before.status === next.status) continue;
     const status = before.status === 'reviewed' && before.category !== next.category ? 'pending' : next.status;
     records[type] = { category: next.category, status, by: actor, at: now, reviewedBy: status === 'reviewed' ? actor : null, reviewedAt: status === 'reviewed' ? now : null };
@@ -138,10 +152,19 @@ async function route(request, env) {
   }
   if (path === '/logout' && request.method === 'POST') return new Response(null, {status:303,headers:{Location:'/', 'Set-Cookie':`${COOKIE}=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`}});
   if (path.startsWith('/api/')) {
-    const sample = await loadSample(env); await ensureState(env,sample);
-    if (path === '/api/sample' && request.method === 'GET') return json(sample);
+    const sample = await loadSample(env);
+    if (['/api/types','/api/sample'].includes(path) && request.method === 'GET') return json(sample);
+    if (path === '/api/documents' && request.method === 'GET') {
+      const type=sample.find(t=>t.name===url.searchParams.get('type'));
+      if (!type?.asset || !/^type-\d{3}$/.test(type.asset)) return json({error:'Unknown document type'},404);
+      const response=await env.ASSETS.fetch(new Request(`https://assets.internal/documents/${type.asset}.json.gz`));
+      if(!response.ok)return json({error:'Document openings are temporarily unavailable.'},503);
+      const headers=new Headers(response.headers);headers.set('Content-Type','application/json; charset=utf-8');headers.set('Content-Encoding','gzip');
+      return new Response(response.body,{headers});
+    }
+    await ensureState(env,sample);
     if (path === '/api/state' && request.method === 'GET') return json(await readState(env));
-    if (path === '/api/state' && request.method === 'PUT') { const raw=await request.text(); if(raw.length>32768)return json({error:'Review update too large'},413);return saveState(new Request(request.url,{method:'PUT',headers:request.headers,body:raw}),env,sample); }
+    if (path === '/api/state' && request.method === 'PUT') { const raw=await request.text(); if(raw.length>131072)return json({error:'Review update too large'},413);return saveState(new Request(request.url,{method:'PUT',headers:request.headers,body:raw}),env,sample); }
     if (path === '/api/export' && request.method === 'GET') {const response=json(await readState(env,true));response.headers.set('Content-Disposition','attachment; filename="world-bank-type-reviews.json"');return response;}
     return json({error:'Not found'},404);
   }
