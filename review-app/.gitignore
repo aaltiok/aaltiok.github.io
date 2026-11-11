@@ -6,3 +6,6 @@ wrangler.jsonc
 node_modules/
 
 Cloudflare-upload/
+
+# Recreated from the pinned registry archive by scripts/fetch-exceljs.py
+vendor/exceljs.min.js
