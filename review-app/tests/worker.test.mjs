@@ -32,6 +32,10 @@ test('unauthenticated requests cannot read page data, APIs or exports; indexing 
 });
 test('password sessions work, use secure cookies, reject tampering, and support sign-out',async t=>{
  const s=setup();t.after(()=>s.env.DB.close());
+ const page=await s.send('/login');assert.equal(page.headers.get('Referrer-Policy'),'same-origin');
+ for(const invalidOrigin of ['null','https://other.example','']){
+  const blocked=await s.send('/login',{method:'POST',headers:{Origin:invalidOrigin},body:'password=incorrect'});assert.equal(blocked.status,403);
+ }
  const bad=await s.send('/login',{method:'POST',headers:{Origin:origin},body:'password=incorrect'});assert.equal(bad.status,401);
  const cookie=await s.login();const initial=await s.get(cookie);assert.equal(initial.revision,0);
  const content=await s.send('/',{headers:{Cookie:cookie}});assert.equal(await content.text(),'private application content');
