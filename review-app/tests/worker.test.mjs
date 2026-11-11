@@ -94,3 +94,48 @@ test('expanding the corpus preserves existing decisions, attribution, comments a
  const docs=await s.send('/api/documents?type='+encodeURIComponent('Additional type 0'),{headers:{Cookie:cookie}});assert.equal(docs.status,200);assert.equal((await docs.json())[0].title,'A protected title');
  assert.equal((await s.send('/api/documents?type=../../sample.json',{headers:{Cookie:cookie}})).status,404);
 });
+
+function post(s,cookie,path,body){return s.send(path,{method:'POST',headers:{Cookie:cookie,Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(body)});}
+async function replay(s,cookie,state,direction,actor='Ali'){const r=await post(s,cookie,'/api/history',{revision:state.revision,direction,actor});assert.equal(r.status,200,JSON.stringify(await r.clone().json()));return r.json();}
+test('individual exceptions persist separately, validate membership, and support undo/redo',async t=>{
+ const catalog=structuredClone(sample);catalog[0].ids=',111,112,';catalog[1].ids=',222,';
+ const s=setup(catalog);t.after(()=>s.env.DB.close());const cookie=await s.login();let state=await s.get(cookie);
+ const assign=(id,type,category,revision=state.revision)=>post(s,cookie,'/api/document',{id,type,category,revision,actor:'Ali'});
+ assert.equal((await assign('111','Project Appraisal Document','Operationalization/Implementation')).status,400);
+ state=await (await assign('111','Report','Operationalization/Implementation')).json();
+ assert.equal(state.modelContent.exceptions['111'].category,'Operationalization/Implementation');
+ assert.equal(state.modelContent.records.Report.category,'Production/Dissemination');
+ assert.equal(state.modelContent.exceptions['112'],undefined);
+ state=await replay(s,cookie,state,'undo');assert.equal(state.modelContent.exceptions['111'],undefined);
+ state=await replay(s,cookie,state,'redo');assert.equal(state.modelContent.exceptions['111'].by,'Ali');
+ state=await (await assign('111','Report',null)).json();assert.equal(state.modelContent.exceptions['111'],undefined);
+ state=await replay(s,cookie,state,'undo');assert(state.modelContent.exceptions['111']);
+ state.modelContent.records.Report.category='Operationalization/Implementation';state=await (await s.save(cookie,state)).json();
+ assert.equal(state.modelContent.exceptions['111'].category,'Operationalization/Implementation');
+ assert.equal(state.history.Ali.redo,null);
+ assert.equal((await assign('112','Report','Production/Dissemination',0)).status,409);
+ assert.equal((await s.get(cookie)).modelContent.exceptions['111'].category,'Operationalization/Implementation');
+ const poll=await s.get(cookie,'/api/state?revision='+state.revision);assert.equal(poll.unchanged,true);assert.equal(poll.modelContent,undefined);
+});
+test('undo restores a completed review and blocks overwriting another reviewer',async t=>{
+ const s=setup();t.after(()=>s.env.DB.close());const cookie=await s.login();let state=await s.get(cookie);
+ state.modelContent.records.Report.status='reviewed';state=await (await s.save(cookie,state,'Caroline')).json();const reviewed=structuredClone(state.modelContent.records.Report);
+ state.modelContent.records.Report.category='Operationalization/Implementation';state=await (await s.save(cookie,state,'Caroline')).json();assert.equal(state.modelContent.records.Report.status,'pending');
+ state=await replay(s,cookie,state,'undo','Caroline');assert.deepEqual(state.modelContent.records.Report,reviewed);
+ state=await replay(s,cookie,state,'redo','Caroline');assert.equal(state.modelContent.records.Report.status,'pending');
+ state.modelContent.records.Report.status='reviewed';state=await (await s.save(cookie,state,'Ali')).json();
+ const denied=await post(s,cookie,'/api/history',{revision:state.revision,actor:'Caroline',direction:'undo'});assert.equal(denied.status,409);
+ assert.equal((await s.get(cookie)).modelContent.records.Report.by,'Ali');
+});
+test('earlier readable history becomes undoable and comment undo is recoverable',async t=>{
+ const s=setup();t.after(()=>s.env.DB.close());const cookie=await s.login();let state=await s.get(cookie);
+ state.modelContent.records.Report.category='Operationalization/Implementation';state=await (await s.save(cookie,state)).json();
+ await s.env.DB.prepare('DELETE FROM review_changes').run();s.env.DB={...s.env.DB};
+ state=await s.get(cookie);assert(state.history.Ali.undo);
+ state=await replay(s,cookie,state,'undo');assert.equal(state.modelContent.records.Report.category,'Production/Dissemination');
+ state=await (await s.save(cookie,state,'Ali',[{type:'Report',by:'Ali',at:'2026-11-10T12:00:00.000Z',text:'A reversible comment'}])).json();
+ assert.equal(state.privateContent.comments.length,1);
+ state=await replay(s,cookie,state,'undo');assert.equal(state.privateContent.comments.length,0);
+ state=await replay(s,cookie,state,'redo');assert.equal(state.privateContent.comments[0].text,'A reversible comment');
+ const exported=await s.get(cookie,'/api/export');assert(exported.changeHistory.some(c=>c.target_kind==='comment'));
+});
