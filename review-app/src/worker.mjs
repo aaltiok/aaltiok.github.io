@@ -10,7 +10,9 @@ function secure(response) {
   const headers = new Headers(response.headers);
   headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   headers.set('Cache-Control', 'private, no-store, max-age=0');
-  headers.set('Referrer-Policy', 'no-referrer');
+  // Native POST forms need their real Origin for the same-origin write check.
+  // Keep referrers within this site; never send them to external destinations.
+  headers.set('Referrer-Policy', 'same-origin');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('X-Frame-Options', 'DENY');
   headers.set('Content-Security-Policy', CSP);
@@ -107,7 +109,14 @@ export default {
 async function route(request, env) {
   const url = new URL(request.url), path = url.pathname;
   if (path === '/robots.txt') return new Response('User-agent: *\nDisallow: /\n', { headers: { 'Content-Type': 'text/plain' } });
-  if (!env.REVIEW_PASSWORD || env.REVIEW_PASSWORD.length < 12 || !env.SESSION_SECRET || env.SESSION_SECRET.length < 32 || !env.DB || !env.ASSETS) return json({ error: 'Private review setup is not complete.' }, 503);
+  const setupChecks = [
+    [Boolean(env.REVIEW_PASSWORD) && env.REVIEW_PASSWORD.length >= 12, 'The shared password must have at least 12 characters.'],
+    [Boolean(env.SESSION_SECRET) && env.SESSION_SECRET.length >= 32, 'The private session key must have at least 32 characters.'],
+    [Boolean(env.DB), 'The review database is not connected.'],
+    [Boolean(env.ASSETS), 'The protected application files are not connected.']
+  ];
+  const missing = setupChecks.find(([ok]) => !ok);
+  if (missing) return json({ error: 'Private review setup is not complete. ' + missing[1] }, 503);
   if (!['GET','HEAD'].includes(request.method) && request.headers.get('Origin') !== url.origin) return json({ error: 'This action must come from the review website.' }, 403);
   if (request.method === 'POST' && path === '/login') {
     if (Number(request.headers.get('Content-Length') || 0) > 4096) return json({ error: 'Request too large' }, 413);
