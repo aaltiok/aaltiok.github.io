@@ -9,7 +9,7 @@ test('a conflicting save cancels queued edits and still allows a manual reload',
  let puts=0,gets=0;
  const window={addEventListener(){},dispatchEvent(){}};
  const context={window,document:{getElementById:id=>nodes[id],visibilityState:'visible'},localStorage:{getItem(){return null;},setItem(){}},structuredClone,CustomEvent:class {constructor(type,options){this.type=type;Object.assign(this,options);}},setInterval(){},location:{assign(){}},fetch:async(path,options)=>{
-  if(path==='/api/sample')return Response.json([]);
+  if(path==='/api/types')return Response.json([]);
   if(options?.method==='PUT'){puts++;return Response.json({error:'A newer save arrived.'},{status:409});}
   gets++;return Response.json(state);
  }};
