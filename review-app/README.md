@@ -1,6 +1,6 @@
 # Private document-type review prototype
 
-Prepared for Ali and Caroline on their own Cloudflare account and domain. This is a separate Worker application; it does not replace or reconfigure the GitHub Pages website. The proposed address is `review.alialtiok.com` and has not been created.
+Prepared for Ali and Caroline on their own Cloudflare account and domain. This is a separate Worker application; it does not replace or reconfigure the GitHub Pages website. The password-protected prototype is deployed at `https://review.alialtiok.com`.
 
 The application uses one category per document type, a pending/reviewed/not-required workflow, comments, and an append-only server audit log. The seven-type sample contains 45 document openings. Browser choices use optimistic revision checks: a conflicting save returns 409 instead of overwriting another reviewer's work. The latest decisions are refreshed every eight seconds while the page is visible. Full audit history and comments remain in the database even though the interface shows recent entries; Export backup downloads all entries.
 
@@ -19,7 +19,11 @@ Generated assets, the sample JSON, local credentials and local deployment config
 
 ## Cloudflare setup
 
-Ali authorized setup of the private sample. The Cloudflare application shell `wb-private-type-review` has been created; storage, credentials, code, and custom-domain checks must still be completed before declaring the review workspace live.
+Ali authorized setup of the private sample. Worker `wb-private-type-review`, its D1 database and `DB` binding, user-entered secrets, and custom domain are configured. The account remains on Workers Free. Alternate workers.dev and preview URLs are disabled. No paid plan or service was purchased. The dashboard deployment uses the generated `worker.js` and private `asset-map.js` modules; generated assets must not be committed to the public repository.
+
+Login form submission was checked in the browser after correcting Referrer-Policy to `same-origin`: a deliberately incorrect password reaches the password check instead of the origin-error response. Cross-origin and null-origin writes remain rejected. A correct-password sign-in and the shared-save UI checks still require completion; do not describe these as verified yet.
+
+Setup/redeployment reference:
 
 1. Review the chosen subdomain and configure the project using the official Cloudflare Wrangler CLI.
 2. Create the `wb-private-type-review` D1 database in Ali's account. Copy `wrangler.jsonc.example` to the ignored `wrangler.jsonc` and enter its actual database ID. Do not use a Sites database or change the main website's DNS records.
