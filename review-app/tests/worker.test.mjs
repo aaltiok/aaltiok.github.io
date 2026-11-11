@@ -139,3 +139,21 @@ test('earlier readable history becomes undoable and comment undo is recoverable'
  state=await replay(s,cookie,state,'redo');assert.equal(state.privateContent.comments[0].text,'A reversible comment');
  const exported=await s.get(cookie,'/api/export');assert(exported.changeHistory.some(c=>c.target_kind==='comment'));
 });
+
+test('verified evidence supplies excluded titles and report links without changing review state',async t=>{
+ const s=setup();t.after(()=>s.env.DB.close());const cookie=await s.login(),before=await s.get(cookie);
+ const data=[{id:'111',included:1,type:'Report',title:'Retained reading',year:'2000',reason:'',details:{opening:'A longer original reading.',url:'https://documents.worldbank.org/curated/en/123456789012345678',pdf:'https://documents.worldbank.org/curated/en/123456789012345678/pdf/report.pdf',text:'https://documents.worldbank.org/curated/en/123456789012345678/text/report.txt'}},{id:'222',included:0,type:'Brief',title:'Excluded report title',year:'2001',reason:'No violence term',details:{opening:'',url:'https://documents.worldbank.org/curated/en/234567890123456789',pdf:'',text:''}}];
+ const raw=JSON.stringify(data),digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw))),b=>b.toString(16).padStart(2,'0')).join('');
+ const assets=s.env.ASSETS.fetch;s.env.ASSETS.fetch=async req=>new URL(req.url).pathname==='/evidence-manifest.json'?Response.json({chunks:[digest]}):assets(req);
+ const upload=()=>s.send('/api/evidence-import',{method:'POST',headers:{Cookie:cookie,Origin:origin},body:raw});
+ assert.equal((await upload()).status,200);assert.equal((await upload()).status,200);
+ const count=await s.get(cookie,'/api/evidence-status');assert.deepEqual(count,{total:2,included:1,excluded:1});
+ const list=await s.get(cookie,'/api/excluded?q=Excluded');assert.equal(list.total,1);assert.equal(list.rows[0].title,'Excluded report title');assert.equal(list.rows[0].type,'Brief');
+ assert.equal((await s.get(cookie,'/api/excluded?q=NotPresent')).total,0);
+ const reading=await s.get(cookie,'/api/reading?id=111');assert.equal(reading.opening,'A longer original reading.');assert.match(reading.pdf,/worldbank/);
+ const bad=await post(s,cookie,'/api/evidence-import',[{...data[0],title:'Changed'}]);assert.equal(bad.status,400);
+ const after=await s.get(cookie);assert.equal(after.revision,before.revision);assert.deepEqual(after.modelContent.records,before.modelContent.records);
+ for(const path of ['/api/excluded','/api/reading?id=111','/api/full-text?id=111'])assert.equal((await s.send(path)).status,401);
+ const realFetch=globalThis.fetch;globalThis.fetch=async url=>new Response('The complete source report.',{headers:{'Content-Type':'text/plain'}});t.after(()=>{globalThis.fetch=realFetch;});
+ const text=await s.send('/api/full-text?id=111',{headers:{Cookie:cookie}});assert.equal(text.status,200);assert.equal(await text.text(),'The complete source report.');
+});
