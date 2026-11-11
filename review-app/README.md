@@ -1,36 +1,39 @@
-# Private document-type review prototype
+# Private World Bank document-type review
 
-Prepared for Ali and Caroline on their own Cloudflare account and domain. This is a separate Worker application; it does not replace or reconfigure the GitHub Pages website. The password-protected prototype is deployed at `https://review.alialtiok.com`.
+Ali and Caroline's shared review tool is deployed at `https://review.alialtiok.com` on Ali's Cloudflare account. It is separate from the GitHub Pages main website. The application contains all 13,271 retained documents: 117 original recorded document-type strings plus one group for the 184 records with no type. Compound type strings are preserved as recorded.
 
-The application uses one category per document type, a pending/reviewed/not-required workflow, comments, and an append-only server audit log. The seven-type sample contains 45 document openings. Browser choices use optimistic revision checks: a conflicting save returns 409 instead of overwriting another reviewer's work. The latest decisions are refreshed every eight seconds while the page is visible. Full audit history and comments remain in the database even though the interface shows recent entries; Export backup downloads all entries.
+Each title has an opening of up to 100 words from its local original text. Whitespace and byte-order marks are normalized for display; these are excerpts, not AI summaries. Titles are searchable within a type; lists show 25 titles per page. Document data loads only for the selected type. No LLM/API calls are made for browsing or coding.
 
-One shared password protects the page, sample data, API and exports. The name selector records attribution; it is not identity verification. Sessions use signed, Secure, HttpOnly, SameSite=Strict cookies and expire after twelve hours. Failed logins are limited per IP. Every response carries `noindex, nofollow, noarchive` and no-store; robots.txt disallows crawling. These indexing directives are additional controls, not the access boundary. The Worker runs before every asset request so private assets cannot bypass authentication.
+One shared PD/OI classification applies to each type. Review status is independent: pending, reviewed, or no review needed. Completing a review records the reviewer and time; changing a reviewed classification reopens the review. The name selector attributes edits and comments; it is not identity verification. Conflicting concurrent saves are rejected rather than silently overwriting another person's decisions. The page polls for shared changes every eight seconds while visible. Export backup includes all stored review history and comments, beyond the recent entries displayed in the interface.
 
-## Local checks (no Cloudflare changes)
+## Classification provenance
 
-Requires Node 24 or newer. No third-party dependencies are needed for these checks.
+`src/classification-rules.mjs` applies Caroline's framework to start new type groups: research, leadership, and analytical/advisory work use PD; country/sector strategies, project work, safeguards and evaluations use OI. These are editable project recodings, not World Bank metadata or completed human reviews. Broad types and boundary cases start pending. The 184 records with no type remain unassigned and pending; their earlier individual Script/Practice labels are shown only as context. No majority category is inferred for that mixed group.
+
+The seven existing prototype decisions, attribution, comments and history are preserved by an additive, revision-checked state expansion. Existing saved labels take precedence over new defaults. The original research corpus, earlier genre coding and source workbooks are not edited.
+
+## Access and cost
+
+One shared password protects the HTML, document titles/openings, APIs and exports. Sessions use signed Secure, HttpOnly, SameSite=Strict cookies expiring after 12 hours. Failed logins are rate limited. Cross-origin/null-origin writes are rejected; same-origin form submissions remain usable. Every response has no-store and noindex/nofollow/noarchive directives, and robots.txt disallows crawling. Indexing directives supplement authentication; they are not the access boundary.
+
+The existing Worker and D1 database remain on Workers Free. No paid service, plan upgrade or payment details were added. The full deployment is approximately 2.48 MB compressed, below the free Worker upload limit. No new storage service is required. workers.dev and preview URLs remain disabled; the review link is not added to the main site's navigation or sitemap.
+
+## Build and checks
+
+Requires Python 3 and Node 24+. There are no third-party runtime dependencies. Read the retained source corpus to generate ignored deployment assets:
 
 ```sh
+python3 scripts/prepare-corpus.py /absolute/path/to/2610_Corpus_2026
 npm test
-node scripts/build.mjs /absolute/path/to/genre-type-review-preview.html
+npm run build
 ```
 
-Generated assets, the sample JSON, local credentials and local deployment configuration are ignored by Git. The public repository may contain the application code; it must not contain document samples, passwords, session secrets or review records. Do not copy the generated assets into the public GitHub Pages root.
+The preparer checks 13,271 unique document IDs, 118 type groups, and 184 missing-type records. The build validates every title/opening, group counts, duplicate IDs and deployment size. `.deploy/build-report.json` records counts and source SHA-256 hashes. Generated data and local credentials are ignored by Git. The public source branch must contain only application code and instructions, never generated assets, passwords, review records or text excerpts.
 
-## Cloudflare setup
+The dashboard deployment consists of `.deploy/dashboard/worker.js` and its private server module `asset-map.js`. Keep `worker.js` as the entry point. Do not place these generated modules in public GitHub Pages files. Precompressed document responses use Cloudflare's manual response encoding so they are not compressed twice.
 
-Ali authorized setup of the private sample. Worker `wb-private-type-review`, its D1 database and `DB` binding, user-entered secrets, and custom domain are configured. The account remains on Workers Free. Alternate workers.dev and preview URLs are disabled. No paid plan or service was purchased. The dashboard deployment uses the generated `worker.js` and private `asset-map.js` modules; generated assets must not be committed to the public repository.
+## Cloudflare configuration
 
-Login form submission was checked in the browser after correcting Referrer-Policy to `same-origin`: a deliberately incorrect password reaches the password check instead of the origin-error response. Cross-origin and null-origin writes remain rejected. A correct-password sign-in and the shared-save UI checks still require completion; do not describe these as verified yet.
+Worker and D1 database: `wb-private-type-review`. Database binding: `DB`. Schema: `schema.sql`. Custom domain: `review.alialtiok.com`. User-entered secrets: `REVIEW_PASSWORD` (at least 12 characters) and `SESSION_SECRET` (a random value of at least 32 characters). Never put secret values in source or chat. Credential entry/rotation is performed by the user.
 
-Setup/redeployment reference:
-
-1. Review the chosen subdomain and configure the project using the official Cloudflare Wrangler CLI.
-2. Create the `wb-private-type-review` D1 database in Ali's account. Copy `wrangler.jsonc.example` to the ignored `wrangler.jsonc` and enter its actual database ID. Do not use a Sites database or change the main website's DNS records.
-3. Apply `schema.sql` to the new database, using `wrangler d1 execute wb-private-type-review --remote --file schema.sql`.
-4. The user sets Worker secrets `REVIEW_PASSWORD` (at least 12 characters) and `SESSION_SECRET` (a new random value of at least 32 characters). Use `wrangler secret put`; never put the values in source or in chat. Setting credentials through a browser requires user entry.
-5. Build the approved prototype, then deploy the Worker with the custom domain. Keep `run_worker_first: true`, `workers_dev: false`, and `preview_urls: false`.
-6. Verify logged-out requests to `/`, `/api/sample`, `/api/state`, `/api/export`, and `/sample.json` do not disclose data. Verify the password works, two browser sessions share edits, stale saves are rejected, comments/history retain attribution, and logging out blocks access again.
-7. Share the review link and password privately with Caroline. Do not add the link to the public site's navigation or sitemap.
-
-Cloudflare must be connected and these checks completed before this is described as live. GitHub source preparation is separate from Cloudflare deployment and does not authorize external changes by itself.
+Before changing saved state or dataset structure, export a backup through the protected review UI. Verify that a full-corpus expansion preserves all earlier records exactly. Validate title search, paging, excerpts, reviewer attribution and review completion on the site. Do not test classification changes against real reviewer decisions when a disposable local preview is available.
