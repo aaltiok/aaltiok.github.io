@@ -1,0 +1,8 @@
+.deploy/
+.local/
+.wrangler/
+.dev.vars*
+wrangler.jsonc
+node_modules/
+
+Cloudflare-upload/
