@@ -11,6 +11,41 @@ let selected='Report',person='Ali',events=[],comments=[],scope='all',reviewScope
 let exceptions={},editingDocs=new Set();
 const docCache=new Map(),loadingDocs=new Set(),docErrors=new Map(),pageSize=25;
 let docType='',docQuery='',docPage=0;
+let readerToken=0,readerAbort,readingId='',excludedOffset=0,excludedTotal=0,excludedRows=[],excludedToken=0,excludedTimer;
+async function fullReading(){
+ const token=readerToken;readerAbort?.abort();readerAbort=new AbortController();$('reader-full').disabled=true;$('reader-status').textContent='Loading the report text from the World Bank…';
+ try{const text=await window.wbFullText(readingId,readerAbort.signal);if(token!==readerToken)return;$('reader-content').textContent=text;$('reader-status').textContent='Report text from the World Bank. Use your browser’s Find command to search; open the PDF for the original layout.';}
+ catch(e){if(token===readerToken&&e.name!=='AbortError')$('reader-status').textContent=e.message+' The saved preview remains below.';}
+ finally{if(token===readerToken)$('reader-full').disabled=false;}
+}
+async function openReader(doc){
+ readerAbort?.abort();const token=++readerToken;readingId=doc.id;$('reader-heading').textContent=doc.title;$('reader-meta').textContent=doc.type||selected;$('reader-content').textContent=doc.text||'';$('reader-status').textContent='Loading reading view…';$('reader-pdf').hidden=true;$('reader-record').hidden=true;$('reader-full').disabled=true;
+ if(!$('report-reader').open)$('report-reader').showModal();
+ try{const data=await window.wbGet('/api/reading?id='+encodeURIComponent(doc.id));if(token!==readerToken)return;
+  $('reader-meta').textContent=`${data.year} · ${data.type}${data.included?'':' · Excluded from corpus'}`;
+  $('reader-content').textContent=data.opening||'The original report is available through the links above.';
+  for(const [key,id] of [['pdf','reader-pdf'],['url','reader-record']]){const u=data[key];if(u&&/^https:\/\/(?:[a-z0-9-]+\.)*worldbank\.org\//i.test(u)){$(id).href=u;$(id).hidden=false;}}
+  $('reader-status').textContent=data.opening?'Saved opening preview · '+data.opening.split(/\s+/).length.toLocaleString('en-US')+' words.':'Loading source text…';$('reader-full').disabled=!data.text;
+  if(data.text)fullReading();
+ }catch(e){if(token===readerToken)$('reader-status').textContent=e.message;}
+}
+async function renderExcluded(){
+ const token=++excludedToken,params=new URLSearchParams({q:$('excluded-search').value,type:$('excluded-type').value,offset:String(excludedOffset)});$('excluded-count').textContent='Loading excluded titles…';
+ try{const data=await window.wbGet('/api/excluded?'+params);if(token!==excludedToken)return;excludedRows=data.rows;excludedTotal=data.total;
+  $('excluded-rows').innerHTML=data.rows.map(d=>`<tr><td>${esc(d.type)}</td><td><button data-read-excluded="${esc(d.id)}">${esc(d.title)}</button><div class="t-muted">${esc(d.year)} · ${esc(d.id)}${d.reason?' · '+esc(d.reason):''}</div></td></tr>`).join('');
+  $('excluded-count').textContent=data.total?`${excludedOffset+1}–${excludedOffset+data.rows.length} of ${data.total.toLocaleString('en-US')}`:'No matching excluded titles';$('excluded-prev').disabled=excludedOffset===0;$('excluded-next').disabled=excludedOffset+50>=data.total;
+ }catch(e){$('excluded-count').textContent=e.message;}
+}
+document.getElementById('excluded-open').addEventListener('click',async()=>{
+ $('excluded-dialog').showModal();excludedOffset=0;renderExcluded();
+ if($('excluded-type').options.length===1){try{const types=await window.wbGet('/api/excluded-types');$('excluded-type').innerHTML='<option value="">All document types</option>'+types.map(t=>`<option value="${esc(t.type)}">${esc(t.type)} (${t.count.toLocaleString('en-US')})</option>`).join('');}catch{}}
+});
+$('report-reader').addEventListener('close',()=>{readerToken++;readerAbort?.abort();});
+$('reader-close').addEventListener('click',()=>$('report-reader').close());$('reader-full').addEventListener('click',fullReading);
+$('excluded-close').addEventListener('click',()=>$('excluded-dialog').close());
+$('excluded-search').addEventListener('input',()=>{clearTimeout(excludedTimer);excludedOffset=0;excludedTimer=setTimeout(renderExcluded,250);});
+$('excluded-type').addEventListener('change',()=>{excludedOffset=0;renderExcluded();});
+$('excluded-prev').addEventListener('click',()=>{excludedOffset=Math.max(0,excludedOffset-50);renderExcluded();});$('excluded-next').addEventListener('click',()=>{excludedOffset+=50;renderExcluded();});
 function restore(s){
  if(!['types-v1','types-v2'].includes(s?.modelContent?.schema))return;
  const m=s.modelContent,p=s.privateContent||{};
@@ -54,7 +89,7 @@ function renderDocuments(){
  const start=docPage*pageSize,shown=docs.slice(start,start+pageSize);
  $('doc-page').textContent=docs.length?`${start+1}–${start+shown.length} of ${docs.length.toLocaleString('en-US')}`:'No matching titles';
  $('doc-prev').disabled=docPage===0;$('doc-next').disabled=docPage>=pages-1;
- $('type-doc-list').innerHTML=shown.map(d=>{const x=exceptions[d.id],category=x?.category||records[t.name].category;return `<details class="t-doc" data-doc="${esc(d.id)}"${openedDocs.has(d.id)?' open':''}><summary><span>${esc(d.year)}</span><span class="t-title">${esc(d.title)}</span><span class="t-doc-label">${code(category)}${x?' · exception':''}</span></summary><div class="t-muted" style="margin-top:8px">${x?code(x.category)+' · individual exception · '+esc(x.by)+' · '+esc(stamp(x.at)):category?code(category)+' · type default':'Unassigned · no document type recorded'}${d.earlier?' · earlier individual coding: '+esc(d.earlier):''}</div><p class="t-opening">${esc(d.text)} …</p><div class="t-muted">${Math.min(100,d.text.split(/\s+/).length)} words · original opening · document ${esc(d.id)}</div><button data-assign-document="${esc(d.id)}" class="t-assign">${x?'Change individual label':'Assign individually'}</button>${editingDocs.has(d.id)?`<div class="t-exception-controls" role="group" aria-label="Assign document ${esc(d.id)}"><span class="t-muted">This document only</span>${cats.map(c=>`<button data-exception-id="${esc(d.id)}" data-exception-category="${c}" aria-pressed="${x?.category===c}">${code(c)}</button>`).join('')}<button data-inherit-document="${esc(d.id)}"${x?'':' disabled'}>Use type default</button></div>`:''}</details>`;}).join('');
+ $('type-doc-list').innerHTML=shown.map(d=>{const x=exceptions[d.id],category=x?.category||records[t.name].category;return `<details class="t-doc" data-doc="${esc(d.id)}"${openedDocs.has(d.id)?' open':''}><summary><span>${esc(d.year)}</span><span class="t-title">${esc(d.title)}</span><span class="t-doc-label">${code(category)}${x?' · exception':''}</span></summary><div class="t-muted" style="margin-top:8px">${x?code(x.category)+' · individual exception · '+esc(x.by)+' · '+esc(stamp(x.at)):category?code(category)+' · type default':'Unassigned · no document type recorded'}${d.earlier?' · earlier individual coding: '+esc(d.earlier):''}</div><button data-read-report="${esc(d.id)}" style="margin-top:10px">Read report</button><p class="t-opening">${esc(d.text)} …</p><div class="t-muted">${Math.min(100,d.text.split(/\s+/).length)} words · original opening · document ${esc(d.id)}</div><button data-assign-document="${esc(d.id)}" class="t-assign">${x?'Change individual label':'Assign individually'}</button>${editingDocs.has(d.id)?`<div class="t-exception-controls" role="group" aria-label="Assign document ${esc(d.id)}"><span class="t-muted">This document only</span>${cats.map(c=>`<button data-exception-id="${esc(d.id)}" data-exception-category="${c}" aria-pressed="${x?.category===c}">${code(c)}</button>`).join('')}<button data-inherit-document="${esc(d.id)}"${x?'':' disabled'}>Use type default</button></div>`:''}</details>`;}).join('');
 }
 function renderActivity(){const c=comments.filter(x=>x.type===selected),h=events.filter(x=>x.type===selected).reverse();$('type-comment-title').textContent=`Type-level comments${c.length?' ('+c.length+')':''}`;$('type-comments').innerHTML=c.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><p>${esc(x.text)}</p></div>`).join('');$('type-note-person').textContent=person;$('type-note').value=drafts[selected+'|'+person]||'';$('type-history-title').textContent=`Change history${h.length?' ('+h.length+')':''}`;$('type-history').innerHTML=h.length?h.map(x=>`<div class="t-activity">${esc(x.by)} · <span class="t-muted">${esc(stamp(x.at))}</span><br>${esc(shortText(x.action))}</div>`).join(''):'<p class="t-muted">No changes yet.</p>';}
 function renderDetail(){
@@ -77,6 +112,8 @@ root.addEventListener('click',e=>{
  if(b.dataset.category&&records[selected].category!==b.dataset.category){const r=records[selected],before=r.category;const reopened=r.status==='reviewed';r.category=b.dataset.category;if(reopened){r.status='pending';r.reviewedBy=null;r.reviewedAt=null;}change(before+' → '+r.category+(reopened?' · review reopened':''));}
  if(b.dataset.reviewAction){const status=b.dataset.reviewAction;if(!states.includes(status)||(status==='reviewed'&&records[selected].category===null))return;const r=records[selected],at=new Date().toISOString();r.status=status;r.reviewedBy=status==='reviewed'?person:null;r.reviewedAt=status==='reviewed'?at:null;change(status==='reviewed'?'Review completed; removed from review queue':'Review requested / reopened',at);}
  if(b.dataset.scope){if(b.dataset.scope==='review'){$('type-filter').value='all';$('type-review-filter').value=reviewScope==='pending'?'all':'pending';}else{$('type-filter').value=scope===b.dataset.scope?'all':b.dataset.scope;$('type-review-filter').value='all';}filters();}
+ if(b.dataset.readReport){const d=docCache.get(selected)?.find(d=>d.id===b.dataset.readReport);if(d)openReader({...d,type:selected});}
+ if(b.dataset.readExcluded){const d=excludedRows.find(d=>d.id===b.dataset.readExcluded);if(d)openReader(d);}
  if(b.id==='doc-prev'){docPage--;renderDocuments();}
  if(b.id==='doc-next'){docPage++;renderDocuments();}
  if(b.id==='doc-retry'){docErrors.delete(selected);renderDocuments();}
