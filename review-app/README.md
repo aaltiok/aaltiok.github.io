@@ -16,7 +16,7 @@ The seven existing prototype decisions, attribution, comments and history are pr
 
 One shared password protects the HTML, document titles/openings, APIs and exports. Sessions use signed Secure, HttpOnly, SameSite=Strict cookies expiring after 12 hours. Failed logins are rate limited. Cross-origin/null-origin writes are rejected; same-origin form submissions remain usable. Every response has no-store and noindex/nofollow/noarchive directives, and robots.txt disallows crawling. Indexing directives supplement authentication; they are not the access boundary.
 
-The existing Worker and D1 database remain on Workers Free. No paid service, plan upgrade or payment details were added. The full deployment is approximately 2.54 MB compressed, below the free Worker upload limit. No new storage service is required. workers.dev and preview URLs remain disabled; the review link is not added to the main site's navigation or sitemap.
+The existing Worker and D1 database remain on Workers Free. No paid service, plan upgrade or payment details were added. The full deployment is approximately 2.55 MB compressed, below the free Worker upload limit. No new storage service is required. workers.dev and preview URLs remain disabled; the review link is not added to the main site's navigation or sitemap.
 
 ## Build and checks
 
@@ -24,6 +24,7 @@ Requires Python 3 and Node 24+. There are no third-party runtime dependencies. R
 
 ```sh
 python3 scripts/prepare-corpus.py /absolute/path/to/2610_Corpus_2026
+python3 scripts/prepare-evidence.py /absolute/path/to/2610_Corpus_2026
 npm test
 npm run build
 ```
@@ -41,3 +42,11 @@ Before changing saved state or dataset structure, export a backup through the pr
 ## Reversible changes and exceptions
 
 The update adds `review_changes`, `document_exceptions` and `review_hidden_comments` with additive CREATE IF NOT EXISTS migrations. Existing type records are not reset. Earlier readable change events are imported into the undo journal without altering the original audit history. Document assignments validate document/type membership against the retained corpus. Every real change, undo and redo uses a revision-checked D1 batch; a concurrent change is kept and the stale action is rejected. Undoing a comment hides it reversibly; full exports retain the journal. Practice mode is session-local and does not alter the database.
+
+## Reading reports and excluded records
+
+“Read report” opens a separate scrollable reader. It starts with up to 1,000 words from the original local text, then attempts to stream the source text from the World Bank. Original PDF and repository links come from `frame_2026.csv`, not guessed titles. If a source text is unavailable, the saved preview and original links remain usable. Browser previews stop at 8 MB and direct the reader to the PDF for very large files.
+
+“Excluded documents” browses all 28,015 excluded records with type, title, year and exclusion context. Search, type filters and paging operate separately from the 13,271 retained documents. Clicking an excluded title opens the same reader with original-source links; excluded text is fetched only when available. Browsing reports, links and exclusions never creates review actions or changes corpus inclusion.
+
+`prepare-evidence.py` joins all 41,286 unique IDs from the audit and original frame, and reads longer previews only for retained documents. It produces ignored, signed-by-hash import chunks. The authenticated, unlisted `/maintenance-import` page accepts those prepared chunks through `/api/evidence-import`; the server checks every SHA-256 against the build manifest and uses INSERT OR IGNORE, so it cannot overwrite review choices or replace existing evidence. Evidence is stored in the existing D1 database in `corpus_evidence`, with a WITHOUT ROWID primary key and one inclusion/type index. No paid service or extra storage product is added. The completed import was verified as 41,286 rows: 13,271 retained and 28,015 excluded. Saved review revision and all 118 type records remained unchanged during import and live practice checks.
